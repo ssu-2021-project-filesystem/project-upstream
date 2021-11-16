@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 
 
@@ -88,3 +89,4 @@ void shell(void);
 
 //jhun
 void mypwd(void);
+void myinode(char *ptr);

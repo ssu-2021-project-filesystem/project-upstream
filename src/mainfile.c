@@ -150,7 +150,7 @@ void shell(void)
         }
         else if(!strcmp("myinode", *(com_tmp_ptr)))
         {
-            //myinode 함수
+            myinode(*(com_tmp_ptr + 1));
         }
         else if(!strcmp("mydatablock", *(com_tmp_ptr)))
         {
@@ -170,7 +170,8 @@ void shell(void)
         }
         else if(!strcmp("exit", *(com_tmp_ptr)))
         {
-            //exit 함수
+            printf("Bye....\n");
+            return;
         }
         else
         {
