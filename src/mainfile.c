@@ -154,7 +154,7 @@ void shell(void)
         }
         else if(!strcmp("mydatablock", *(com_tmp_ptr)))
         {
-            //mydatablock ÇÔ¼ö
+            mydatablock(*(com_tmp_ptr + 1));
         }
         else if(!strcmp("mystate", *(com_tmp_ptr)))
         {
@@ -170,7 +170,7 @@ void shell(void)
         }
         else if(!strcmp("exit", *(com_tmp_ptr)))
         {
-            printf("Bye....\n");
+            printf("Bye....\n\n");
             return;
         }
         else

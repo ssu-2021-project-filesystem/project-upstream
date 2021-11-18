@@ -1,5 +1,6 @@
 #include "user.h"
 
+
 /*
 이름    : mypwd 함수
 작성자  : 이준혁
@@ -45,11 +46,12 @@ void mypwd(void)
     return;
 }
 
+
 /*
 이름    : myinode 함수
 작성자  : 이준혁
 기능    : 지정한 inode의 내용을 출력한다
-받는값  : X
+받는값  : inode 번호(문자열)
 리턴값  : X
 */
 void myinode(char *ptr)
@@ -80,7 +82,7 @@ void myinode(char *ptr)
         }
     }
 
-    ptr_offset = 0;
+    ptr_offset = 0; //변수 재사용을 위해 초기화
 
     for (int i = (figure - 1); i >= 0; i--)
     {
@@ -104,11 +106,7 @@ void myinode(char *ptr)
         abort();
     }
 
-    // myfs 정보 읽기
-    INODE *inode_data_ptr = (INODE *)malloc(sizeof(INODE)); // inode 정보를 저장할 메모리 공간을 가리키는 포인터
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (inode - 1)), SEEK_SET);
-    fread(inode_data_ptr, sizeof(INODE), 1, myfs);
-
+    // myfs에서 superblock 정보 읽기
     SUPERBLOCK *sb_ptr = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK));
     fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
     fread(sb_ptr, sizeof(SUPERBLOCK), 1, myfs);
@@ -122,6 +120,8 @@ void myinode(char *ptr)
         if ((sb_ptr->inode_1 & mask) == 0)
         {
             printf("해당 inode는 사용 중이 아닙니다.\n");
+            free(sb_ptr);
+            fclose(myfs);
             return;
         }
     }
@@ -131,6 +131,8 @@ void myinode(char *ptr)
         if ((sb_ptr->inode_2 & mask) == 0)
         {
             printf("해당 inode는 사용 중이 아닙니다.\n");
+            free(sb_ptr);
+            fclose(myfs);
             return;
         }
     }
@@ -140,6 +142,8 @@ void myinode(char *ptr)
         if ((sb_ptr->inode_3 & mask) == 0)
         {
             printf("해당 inode는 사용 중이 아닙니다.\n");
+            free(sb_ptr);
+            fclose(myfs);
             return;
         }
     }
@@ -149,9 +153,16 @@ void myinode(char *ptr)
         if ((sb_ptr->inode_4 & mask) == 0)
         {
             printf("해당 inode는 사용 중이 아닙니다.\n");
+            free(sb_ptr);
+            fclose(myfs);
             return;
         }
     }
+
+    // myfs에서 inode list 정보 읽기
+    INODE *inode_data_ptr = (INODE *)malloc(sizeof(INODE)); // inode 정보를 저장할 메모리 공간을 가리키는 포인터
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (inode - 1)), SEEK_SET);
+    fread(inode_data_ptr, sizeof(INODE), 1, myfs);
 
     // inode 정보 출력하기
     //종류
@@ -222,6 +233,193 @@ void myinode(char *ptr)
     //동적 메모리 할당 공간 반납
     free(inode_data_ptr);
     free(sb_ptr);
+
+    //파일 닫기
+    fclose(myfs);
+
+    return;
+}
+
+
+/*
+이름    : mydatablock 함수
+작성자  : 이준혁
+기능    : 지정된 데이터 블록에 들어있는 내용을 출력한다
+받는값  : datablock 번호(문자열)
+리턴값  : X
+*/
+void mydatablock(char *ptr)
+{
+    // ptr이 가리키는 문자열을 정수로 전환, 올바른 값인지 검사
+    int datablock = 0;  // datablock 번호
+    int figure = 0; // ptr이 가리키고 있는 문자열의 자릿수
+    int ptr_offset = 0;
+
+    while (1)
+    {
+        if (*(ptr + ptr_offset) == 0)
+        {
+            break;
+        }
+        else
+        {
+            if ((*(ptr + ptr_offset) < 48) || (*(ptr + ptr_offset) > 57)) //정수 문자가 아닌 문자가 있는 경우
+            {
+                printf("datablock 번호가 잘못되었습니다.\n");
+                return;
+            }
+            else
+            {
+                ptr_offset++;
+                figure++;
+            }
+        }
+    }
+
+    ptr_offset = 0; //변수 재사용을 위해 초기화
+
+    for (int i = (figure - 1); i >= 0; i--)
+    {
+        datablock += (*(ptr + ptr_offset) - 48) * ((int)pow(10, i));
+
+        ptr_offset++;
+    }
+
+    if ((datablock > 256) || (datablock < 1)) // 1~256인 정수가 아닌 경우
+    {
+        printf("datablock 번호가 잘못되었습니다.\n");
+        return;
+    }
+
+    //파일 열기
+    FILE *myfs;
+    myfs = fopen("myfs.bin", "rb");
+    if (myfs == NULL)
+    {
+        printf("mydatablock() 함수 : 파일 열기에 실패했습니다.\n");
+        abort();
+    }
+
+    // myfs에서 superblock 정보 읽기
+    SUPERBLOCK *sb_ptr = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK));
+    fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
+    fread(sb_ptr, sizeof(SUPERBLOCK), 1, myfs);
+
+    // datablock 사용 여부 확인하기
+    unsigned mask;
+
+    if (datablock < (32 * 1 + 1)) // data_block_1에 정보가 들어있는 경우
+    {
+        mask = 1 << (datablock - 1);
+        if ((sb_ptr->data_block_1 & mask) == 0)
+        {
+            printf("해당 datablock은 사용 중이 아닙니다.\n");
+            free(sb_ptr);
+            fclose(myfs);
+            return;
+        }
+    }
+    else if (datablock < (32 * 2 + 1)) // data_block_2에 정보가 들어있는 경우
+    {
+        mask = 1 << ((datablock - (32 * 1)) - 1);
+        if ((sb_ptr->data_block_2 & mask) == 0)
+        {
+            printf("해당 datablock은 사용 중이 아닙니다.\n");
+            free(sb_ptr);
+            fclose(myfs);
+            return;
+        }
+    }
+    else if (datablock < (32 * 3 + 1)) // data_block_3에 정보가 들어있는 경우
+    {
+        mask = 1 << ((datablock - (32 * 2)) - 1);
+        if ((sb_ptr->data_block_3 & mask) == 0)
+        {
+            printf("해당 datablock은 사용 중이 아닙니다.\n");
+            free(sb_ptr);
+            fclose(myfs);
+            return;
+        }
+    }
+    else if (datablock < (32 * 4 + 1)) // data_block_4에 정보가 들어있는 경우
+    {
+        mask = 1 << ((datablock - (32 * 3)) - 1);
+        if ((sb_ptr->data_block_4 & mask) == 0)
+        {
+            printf("해당 datablock은 사용 중이 아닙니다.\n");
+            free(sb_ptr);
+            fclose(myfs);
+            return;
+        }
+    }
+    else if (datablock < (32 * 5 + 1)) // data_block_5에 정보가 들어있는 경우
+    {
+        mask = 1 << ((datablock - (32 * 4)) - 1);
+        if ((sb_ptr->data_block_5 & mask) == 0)
+        {
+            printf("해당 datablock은 사용 중이 아닙니다.\n");
+            free(sb_ptr);
+            fclose(myfs);
+            return;
+        }
+    }
+    else if (datablock < (32 * 6 + 1)) // data_block_6에 정보가 들어있는 경우
+    {
+        mask = 1 << ((datablock - (32 * 5)) - 1);
+        if ((sb_ptr->data_block_6 & mask) == 0)
+        {
+            printf("해당 datablock은 사용 중이 아닙니다.\n");
+            free(sb_ptr);
+            fclose(myfs);
+            return;
+        }
+    }
+    else if (datablock < (32 * 7 + 1)) // data_block_7에 정보가 들어있는 경우
+    {
+        mask = 1 << ((datablock - (32 * 6)) - 1);
+        if ((sb_ptr->data_block_7 & mask) == 0)
+        {
+            printf("해당 datablock은 사용 중이 아닙니다.\n");
+            free(sb_ptr);
+            fclose(myfs);
+            return;
+        }
+    }
+    else if (datablock < (32 * 8 + 1)) // data_block_8에 정보가 들어있는 경우
+    {
+        mask = 1 << ((datablock - (32 * 7)) - 1);
+        if ((sb_ptr->data_block_8 & mask) == 0)
+        {
+            printf("해당 datablock은 사용 중이 아닙니다.\n");
+            free(sb_ptr);
+            fclose(myfs);
+            return;
+        }
+    }
+
+    //datablock 출력
+    char *datablock_ptr = (char *)malloc(sizeof(char));
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (datablock - 1)), SEEK_SET);
+
+    for(int i = 0; i < 256; i++)
+    {
+        fread(datablock_ptr, sizeof(char), 1, myfs);
+
+        if(*datablock_ptr == -1)
+        {
+            break;
+        }
+        else
+        {
+            printf("%c", *datablock_ptr);
+        }
+    }
+
+    printf("\n");
+    
+    //동적 메모리 할당 공간 반납
+    free(sb_ptr);
+    free(datablock_ptr);
 
     //파일 닫기
     fclose(myfs);

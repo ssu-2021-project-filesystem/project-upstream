@@ -8,15 +8,15 @@
 
 //매크로
 //block 별 크기(바이트 단위)
-#define     BOOT_BLOCK_SIZE             2       //boot block의 총 크기
-#define     SUPER_BLOCK_SIZE            12      //super block의 총 크기
-#define     INODE_LIST_SIZE             2176    //inode list의 총 크기(inode 하나의 크기 아님)
+#define     BOOT_BLOCK_SIZE             2               //boot block의 총 크기
+#define     SUPER_BLOCK_SIZE            12              //super block의 총 크기
+#define     INODE_LIST_SIZE             (20 * 128)      //inode list의 총 크기(inode 하나의 크기 아님)
 
-#define     DATA_BLOCK_SIZE             256     //data block의 block 하나의 크기
+#define     DATA_BLOCK_SIZE             256             //data block의 block 하나의 크기
 
 //명령어 문자열의 크기 지정
-#define     COM_SEP_SIZE                30      //쉘에 입력하는 명령어에서 각 단어의 최대 크기
-#define     COM_SEP_NUM                 4       //쉘에 입력하는 명령어가 가질 수 있는 단어의 최대 개수
+#define     COM_SEP_SIZE                30              //쉘에 입력하는 명령어에서 각 단어의 최대 크기
+#define     COM_SEP_NUM                 4               //쉘에 입력하는 명령어가 가질 수 있는 단어의 최대 개수
 
 
 
@@ -90,3 +90,4 @@ void shell(void);
 //jhun
 void mypwd(void);
 void myinode(char *ptr);
+void mydatablock(char *ptr);
