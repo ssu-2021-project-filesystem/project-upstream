@@ -1,6 +1,12 @@
+//헤더파일
 #include "user.h"
 
 
+//매크로
+#define     COMMAND_SIZE            30      //command() 함수에서 입력받을 수 있는 명령어의 길이
+
+
+//함수
 /*
 이름    : mypwd 함수
 작성자  : 이준혁
@@ -86,7 +92,7 @@ void myinode(char *ptr)
 
     for (int i = (figure - 1); i >= 0; i--)
     {
-        inode += (*(ptr + ptr_offset) - 48) * ((int)pow(10, i));
+        inode += (*(ptr + ptr_offset) - 48) * (int_pow(10, i));
 
         ptr_offset++;
     }
@@ -280,7 +286,7 @@ void mydatablock(char *ptr)
 
     for (int i = (figure - 1); i >= 0; i--)
     {
-        datablock += (*(ptr + ptr_offset) - 48) * ((int)pow(10, i));
+        datablock += (*(ptr + ptr_offset) - 48) * (int_pow(10, i));
 
         ptr_offset++;
     }
@@ -426,3 +432,55 @@ void mydatablock(char *ptr)
 
     return;
 }
+
+
+/*
+이름    : command 함수
+작성자  : 이준혁
+기능    : linux 명령어를 실행한다
+받는값  : X
+리턴값  : X
+*/
+void command(void)
+{
+    //linux 명령어 입력
+    char *command_ptr = (char *)malloc(sizeof(char) * COMMAND_SIZE);
+    char tmp_char;
+    int loop_char_num = 0;
+
+    printf("linux 명령어를 입력하세요 : ");
+
+    while((tmp_char = getchar()) != '\n')
+    {
+        *(command_ptr + loop_char_num) = tmp_char;
+
+        loop_char_num++;
+    }
+    *(command_ptr + loop_char_num) = 0; //NULL 배정
+
+    //linux 명령어 실행
+    system(command_ptr);
+
+    return;
+}
+
+
+/*
+이름    : 거듭제곱 함수
+작성자  : 이준혁
+기능    : 작성한 두 인자로 거듭제곱을 수행한다(pow() 함수를 사용하기 껄끄러워서 만들어서 쓴다)
+받는값  : 거듭제곱을 수행할 두 정수
+리턴값  : 거듭제곱 계산 결과값
+*/
+int int_pow(int a, int b) //a의 b 거듭제곱을 리턴한다
+{
+    int value = 1;
+
+    for(int i = 0; i < b; i++)
+    {
+        value *= a;
+    }
+
+    return value;
+}
+

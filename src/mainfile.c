@@ -166,7 +166,7 @@ void shell(void)
         }
         else if(!strcmp("command", *(com_tmp_ptr)))
         {
-            //command ÇÔ¼ö
+            command();
         }
         else if(!strcmp("exit", *(com_tmp_ptr)))
         {

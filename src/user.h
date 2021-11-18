@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 
 
@@ -91,3 +90,6 @@ void shell(void);
 void mypwd(void);
 void myinode(char *ptr);
 void mydatablock(char *ptr);
+void command(void);
+int int_pow(int a, int b);
+
