@@ -60,7 +60,7 @@ void mypwd(void)
 받는값  : inode 번호(문자열)
 리턴값  : X
 */
-void myinode(char *ptr)
+void myinode(const char *ptr)
 {
     // ptr이 가리키는 문자열을 정수로 전환, 올바른 값인지 검사
     int inode = 0;  // inode 번호
@@ -254,7 +254,7 @@ void myinode(char *ptr)
 받는값  : datablock 번호(문자열)
 리턴값  : X
 */
-void mydatablock(char *ptr)
+void mydatablock(const char *ptr)
 {
     // ptr이 가리키는 문자열을 정수로 전환, 올바른 값인지 검사
     int datablock = 0;  // datablock 번호
@@ -468,7 +468,7 @@ void command(void)
 /*
 이름    : 거듭제곱 함수
 작성자  : 이준혁
-기능    : 작성한 두 인자로 거듭제곱을 수행한다(pow() 함수를 사용하기 껄끄러워서 만들어서 쓴다)
+기능    : 작성한 두 인자로 거듭제곱을 수행한다
 받는값  : 거듭제곱을 수행할 두 정수
 리턴값  : 거듭제곱 계산 결과값
 */
@@ -482,5 +482,127 @@ int int_pow(int a, int b) //a의 b 거듭제곱을 리턴한다
     }
 
     return value;
+}
+
+
+/*
+이름    : mytree 함수
+작성자  : 이준혁
+기능    : 디렉토리 구조를 출력한다
+받는값  : 구조를 출력할 디렉토리의 절대경로
+리턴값  : X
+*/
+void mytree(const char *path_ptr)
+{
+    int tree_inode; //구조를 출력할 디렉토리의 inode 번호를 저장할 변수
+
+    //명령어로부터 전달된 인자 처리
+    if(path_ptr == NULL) //인자가 입력되지 않은 경우
+    {
+        tree_inode = rear_dir_list_ptr->inode; //현재 디렉토리의 inode 배정
+    }
+    else //인자가 입력된 경우
+    {
+        tree_inode = path_to_inode(path_ptr); //해당 디렉토리의 inode를 배정
+
+        //경로가 잘못된 경우에 대한 예외처리
+        if(tree_inode == 0)
+        {
+            printf("잘못된 경로입니다.\n");
+
+            return;
+        }
+    }
+
+    //디렉토리 구조 출력
+    
+
+    return;
+}
+
+
+/*
+이름    : path_to_inode 함수
+작성자  : 이준혁
+기능    : 절대경로를 받아서 해당 디렉토리의 inode 번호를 리턴한다
+받는값  : 
+리턴값  : X
+*/
+int path_to_inode(const char *path_ptr)
+{
+    int inode = 1; //inode 번호를 저장할 변수. 기본값 1(root)
+    
+    int tmp_datablock; //datablock 번호를 저장할 변수
+    
+    INODE *inode_ptr = (INODE *)malloc(sizeof(INODE)); //inode를 가리킬 포인터
+
+    char *tmp_cmd_string_ptr = (char *)malloc(sizeof(char) * 8); //path에서 추출한 디렉토리명을 가리킬 포인터
+    
+    char *tmp_dir_string_ptr = (char *)malloc(sizeof(char) * 8); //디렉토리의 datablock에서 추출한 디렉토리명을 가리킬 포인터
+    int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //디렉토리의 datablock에서 추출한 inode 번호를 가리킬 포인터
+
+    FILE *myfs;
+    myfs = fopen("myfs.bin", "rb");
+
+    path_ptr++; //루트(/) 넘어가기
+
+    while(1)
+    {
+        //path에서 문자열 분리
+        if(sscanf(path_ptr ,"%[^/\\0]", tmp_cmd_string_ptr) != 1) //tmp_string_ptr에는 디렉토리명이 저장되고, 맨 끝에는 NULL이 들어감
+        {
+            break;
+        }
+
+        path_ptr = path_ptr + (strlen(tmp_cmd_string_ptr) + 1);
+
+        //inode의 디렉토리로 이동, 해당 datablock으로 이동
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (inode - 1)), SEEK_SET);
+        fread(inode_ptr, sizeof(INODE), 1, myfs);
+
+        tmp_datablock = (int)(inode_ptr->dir_1 + 1);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (256 * (tmp_datablock - 1)), SEEK_SET);
+
+        //datablock의 디렉토리명 추출, tmp_cmd_string_ptr과 비교
+        int diff_error = 0;
+        for(int i = 0; i < (inode_ptr->size) / (8 + sizeof(int)); i++)
+        {
+            fread(tmp_dir_string_ptr, 8, 1, myfs);
+            
+            if(strcmp(tmp_dir_string_ptr, tmp_cmd_string_ptr) == 0) //두 문자열이 같은 경우
+            {
+                fread(tmp_inode_ptr, sizeof(int), 1, myfs);
+                inode = *tmp_inode_ptr;
+
+                break;
+            }
+            else //두 문자열이 다른 경우
+            {
+                fread(tmp_inode_ptr, sizeof(int), 1, myfs); //inode 번호 건너뛰기
+                diff_error++;
+            }
+        }
+
+        if(diff_error == ((inode_ptr->size) / (8 + sizeof(int))))
+        {
+            free(tmp_cmd_string_ptr);
+            free(inode_ptr);
+            free(tmp_dir_string_ptr);
+            free(tmp_inode_ptr);
+
+            fclose(myfs);
+
+            return 0;
+        }
+    }
+
+    free(tmp_cmd_string_ptr);
+    free(inode_ptr);
+    free(tmp_dir_string_ptr);
+    free(tmp_inode_ptr);
+
+    fclose(myfs);
+
+    return inode;
 }
 

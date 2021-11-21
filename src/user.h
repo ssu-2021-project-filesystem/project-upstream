@@ -14,7 +14,7 @@
 #define     DATA_BLOCK_SIZE             256             //data block의 block 하나의 크기
 
 //명령어 문자열의 크기 지정
-#define     COM_SEP_SIZE                30              //쉘에 입력하는 명령어에서 각 단어의 최대 크기
+#define     COM_SEP_SIZE                50              //쉘에 입력하는 명령어에서 각 단어의 최대 크기(NULL 문자 포함)
 #define     COM_SEP_NUM                 4               //쉘에 입력하는 명령어가 가질 수 있는 단어의 최대 개수
 
 
@@ -66,7 +66,7 @@ typedef struct
     unsigned indir : 8;     //single indirect 블럭 번호
 }INODE;
 
-//작업 디렉토리 경로를 저장할 node 구조체
+//작업 디렉토리의 절대 경로를 저장할 node 구조체
 typedef struct dir_list
 {
     char *name;
@@ -88,8 +88,9 @@ void shell(void);
 
 //jhun
 void mypwd(void);
-void myinode(char *ptr);
-void mydatablock(char *ptr);
+void myinode(const char *ptr);
+void mydatablock(const char *ptr);
 void command(void);
 int int_pow(int a, int b);
-
+void mytree(const char *path_ptr);
+int path_to_inode(const char *path_ptr);
