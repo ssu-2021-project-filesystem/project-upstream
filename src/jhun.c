@@ -6,6 +6,12 @@
 #define     COMMAND_SIZE            30      //command() 함수에서 입력받을 수 있는 명령어의 길이
 
 
+//전역변수
+//move. 테스트해보고 안되면 user.h에 추가하기.
+int mytree_dir_layer = 0;
+
+
+
 //함수
 /*
 이름    : mypwd 함수
@@ -515,7 +521,12 @@ void mytree(const char *path_ptr)
     }
 
     //디렉토리 구조 출력
-    
+    FILE *myfs;
+    myfs = fopen("myfs.bin", "rb");
+
+    dir_print(tree_inode, myfs);
+
+    fclose(myfs);
 
     return;
 }
@@ -525,7 +536,7 @@ void mytree(const char *path_ptr)
 이름    : path_to_inode 함수
 작성자  : 이준혁
 기능    : 절대경로를 받아서 해당 디렉토리의 inode 번호를 리턴한다
-받는값  : 
+받는값  : 디렉토리의 절대경로
 리턴값  : X
 */
 int path_to_inode(const char *path_ptr)
@@ -565,10 +576,10 @@ int path_to_inode(const char *path_ptr)
 
         //datablock의 디렉토리명 추출, tmp_cmd_string_ptr과 비교
         int diff_error = 0;
-        for(int i = 0; i < (inode_ptr->size) / (8 + sizeof(int)); i++)
+        for(int i = 0; i < ((inode_ptr->size) / (8 + sizeof(int))); i++)
         {
             fread(tmp_dir_string_ptr, 8, 1, myfs);
-            
+
             if(strcmp(tmp_dir_string_ptr, tmp_cmd_string_ptr) == 0) //두 문자열이 같은 경우
             {
                 fread(tmp_inode_ptr, sizeof(int), 1, myfs);
@@ -606,3 +617,134 @@ int path_to_inode(const char *path_ptr)
     return inode;
 }
 
+
+/*
+이름    : dir_print 함수
+작성자  : 이준혁
+기능    : 재귀함수로 사용되어 디렉토리 구조를 출력한다
+받는값  : inode 번호, myfs 파일포인터
+리턴값  : X
+*/
+void dir_print(int inode, FILE *myfs)
+{
+    mytree_dir_layer++;
+
+    INODE *inode_ptr = (INODE *)malloc(sizeof(INODE)); //inode를 가리킬 포인터
+
+    int tmp_datablock; //inode의 datablock 번호를 저장할 변수
+
+    char *tmp_dir_string_ptr = (char *)malloc(sizeof(char) * 8); //디렉토리의 datablock에서 추출한 디렉토리명을 가리킬 포인터
+    int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //디렉토리의 datablock에서 추출한 inode 번호를 가리킬 포인터
+
+    //해당 inode 번호의 datablock 번호 추출
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (inode - 1)), SEEK_SET);
+    fread(inode_ptr, sizeof(INODE), 1, myfs);
+    tmp_datablock = (int)(inode_ptr->dir_1 + 1);
+
+    //디렉토리 처리
+    int first = 0;
+    for(int i = 0; i < (inode_ptr->size / (8 + sizeof(int))); i++)
+    {
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (256 * (tmp_datablock - 1)) + (i * (8 + sizeof(int))), SEEK_SET);
+        fread(tmp_dir_string_ptr, 8, 1, myfs); //디렉토리명
+        fread(tmp_inode_ptr, sizeof(int), 1, myfs); //inode
+
+        if(strcmp(tmp_dir_string_ptr, "..") == 0)
+        {
+            //디렉토리명 출력
+            if(inode == 1)
+            {
+                printf("%-7s", "/");
+            }
+            else
+            {
+                //..에서 inode 찾아서 디렉토리명 출력
+                printf("%-7s", current_dir_find(inode, *tmp_inode_ptr, myfs));
+            }
+
+            //디렉토리명 뒤에 출력할 문자
+            if(inode_ptr->size > (2 * (8 + sizeof(int))))
+            {
+                printf("-> ");
+            }
+            else
+            {
+                printf("\n");
+            }
+        }
+        else if(strcmp(tmp_dir_string_ptr, ".") == 0)
+        {
+            ;
+        }
+        else
+        {
+            if(first != 0) //첫 번째로 출력되는 디렉토리가 아닌 경우
+            {
+                for(int j = 0; j < mytree_dir_layer; j++)
+                {
+                    if(j == (mytree_dir_layer - 1)) //마지막에는 ->까지 출력
+                    {
+                        printf("       -> ");
+                    }
+                    else
+                    {
+                        printf("          ");
+                    }
+                }
+            }
+            else //첫 번째로 출력되는 디렉토리인 경우
+            {
+                first++;
+            }
+            
+            dir_print(*tmp_inode_ptr, myfs);
+        }
+    }
+
+
+    free(inode_ptr);
+    free(tmp_dir_string_ptr);
+    free(tmp_inode_ptr);
+
+    mytree_dir_layer--;
+
+    return;
+}
+
+
+/*
+이름    : current_dir_find 함수
+작성자  : 이준혁
+기능    : 해당 디렉토리의 inode 번호와 부모 디렉토리의 inode 번호로 해당 디렉토리의 디렉토리명을 구한다
+받는값  : inode 번호, 상위 디렉토리의 inode 번호, myfs 파일포인터
+리턴값  : X
+*/
+char *current_dir_find(int inode, int high_inode, FILE *myfs)
+{
+    INODE *inode_ptr = (INODE *)malloc(sizeof(INODE)); //inode를 가리킬 포인터
+
+    char *tmp_dir_string_ptr = (char *)malloc(sizeof(char) * 8); //디렉토리의 datablock에서 추출한 디렉토리명을 가리킬 포인터
+    int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //디렉토리의 datablock에서 추출한 inode 번호를 가리킬 포인터
+
+    int tmp_datablock; //inode의 datablock 번호를 저장할 변수
+
+    //..의 디렉토리 리스트가 저장된 datablock 번호 추출
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (high_inode - 1)), SEEK_SET);
+    fread(inode_ptr, sizeof(INODE), 1, myfs);
+    tmp_datablock = (int)(inode_ptr->dir_1 + 1);
+
+    //디렉토리 찾아서 리턴
+    for(int i = 0; i < (inode_ptr->size / (8 + sizeof(int))); i++)
+    {
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (256 * (tmp_datablock - 1)) + (i * (8 + sizeof(int))), SEEK_SET);
+        fread(tmp_dir_string_ptr, 8, 1, myfs); //디렉토리명
+        fread(tmp_inode_ptr, sizeof(int), 1, myfs); //inode
+
+        if(inode == *tmp_inode_ptr)
+        {
+            break;
+        }
+    }    
+
+    return tmp_dir_string_ptr;
+}

@@ -1,3 +1,4 @@
+//헤더파일
 #include "user.h"
 
 
@@ -21,64 +22,6 @@ int main(void)
     front_dir_list_ptr->name = "/";
     front_dir_list_ptr->next_ptr = NULL;
     rear_dir_list_ptr = front_dir_list_ptr;
-
-    /*
-    //test
-    FILE *myfs = fopen("myfs.bin", "wb");
-    
-    int inode;
-    int datablock;
-    int dir_inode;
-    int *dir_inode_ptr = &dir_inode;
-    INODE *inode_ptr = (INODE *)malloc(sizeof(INODE)); //inode를 가리킬 포인터
-    char *dir_list_ptr = (char *)malloc(sizeof(char) * 9);
-
-    // /
-    //inode 읽기
-    inode = 1;
-
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (inode - 1)), SEEK_SET);
-    inode_ptr->size = 2 * (8 + sizeof(int));
-    inode_ptr->dir_1 = 0;
-    fwrite(inode_ptr, sizeof(INODE), 1, myfs);
-
-    datablock = 1;
-
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (256 * (datablock - 1)), SEEK_SET);
-    sprintf(dir_list_ptr, "%s", "mnt");
-    dir_list_ptr[3] = 0;
-    fwrite(dir_list_ptr, 8, 1, myfs);
-    dir_inode = 2;
-    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
-
-    sprintf(dir_list_ptr, "%s", "test");
-    dir_list_ptr[4] = 0;
-    fwrite(dir_list_ptr, 8, 1, myfs);
-    dir_inode = 3;
-    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
-
-    // mnt
-    //inode 읽기
-    inode = 2;
-
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (inode - 1)), SEEK_SET);
-    inode_ptr->size = 8 + sizeof(int);
-    inode_ptr->dir_1 = 1;
-    fwrite(inode_ptr, sizeof(INODE), 1, myfs);
-
-    datablock = 2;
-
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (256 * (datablock - 1)), SEEK_SET);
-    
-    sprintf(dir_list_ptr, "%s", "result");
-    dir_list_ptr[6] = 0;
-    fwrite(dir_list_ptr, 8, 1, myfs);
-    dir_inode = 4;
-    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
-
-    fclose(myfs);
-    //test 코드 끝
-    */
 
     //쉘
     shell();
