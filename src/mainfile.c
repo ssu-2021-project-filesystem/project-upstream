@@ -1,3 +1,4 @@
+//헤더파일
 #include "user.h"
 
 
@@ -54,12 +55,22 @@ void shell(void)
         mypwd(); //mypwd() 함수로 경로 출력
         printf(" ]$ ");
 
+        //포인터가 가리키는 메모리 공간 초기화
+        for(int i = 0; i < COM_SEP_NUM; i++)
+        {   
+            for(int j = 0; j < COM_SEP_SIZE; j++)
+            {
+                *(*(com_sep_ptr + i) + j) = 0;
+            }
+        }
+
         //명령어 입력
         char char_tmp;
         int com_ptr_num = 0; //포인터 변수의 인덱스
         int com_ptr_char_num = 0; //포인터 변수가 가리키는 문자의 인덱스
 
         rewind(stdin); //버퍼 비우기
+
         while((char_tmp = getchar()) != '\n')
         {
             if(char_tmp != ' ') //공백 문자가 아닌 경우
@@ -78,7 +89,7 @@ void shell(void)
         }
         *(*(com_sep_ptr + com_ptr_num) + com_ptr_char_num) = 0;
 
-        //입력 데이터 전처리
+        //입력 데이터 초기화, 전처리
         char **com_tmp_ptr = (char **)malloc(sizeof(char *) * COM_SEP_NUM); //4개의 포인터를 가리킬 수 있는 이차원 포인터
 
         for(int i = 0; i < (com_ptr_num + 1); i++)
@@ -150,11 +161,11 @@ void shell(void)
         }
         else if(!strcmp("myinode", *(com_tmp_ptr)))
         {
-            //myinode 함수
+            myinode(*(com_tmp_ptr + 1));
         }
         else if(!strcmp("mydatablock", *(com_tmp_ptr)))
         {
-            //mydatablock 함수
+            mydatablock(*(com_tmp_ptr + 1));
         }
         else if(!strcmp("mystate", *(com_tmp_ptr)))
         {
@@ -162,15 +173,16 @@ void shell(void)
         }
         else if(!strcmp("mytree", *(com_tmp_ptr)))
         {
-            //mytree 함수
+            mytree(*(com_tmp_ptr + 1));
         }
         else if(!strcmp("command", *(com_tmp_ptr)))
         {
-            //command 함수
+            command();
         }
         else if(!strcmp("exit", *(com_tmp_ptr)))
         {
-            //exit 함수
+            printf("Bye....\n\n");
+            return;
         }
         else
         {
