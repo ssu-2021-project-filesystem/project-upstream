@@ -96,3 +96,5 @@ void mytree(const char *path_ptr);
 int path_to_inode(const char *path_ptr);
 void dir_print(int inode, FILE *myfs);
 char *current_dir_find(int inode, int high_inode, FILE *myfs);
+void mymkfs(void);
+

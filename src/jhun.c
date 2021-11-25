@@ -111,7 +111,7 @@ void myinode(const char *ptr)
 
     //파일 열기
     FILE *myfs;
-    myfs = fopen("myfs.bin", "rb");
+    myfs = fopen("myfs", "rb");
     if (myfs == NULL)
     {
         printf("myinode() 함수 : 파일 열기에 실패했습니다.\n");
@@ -305,7 +305,7 @@ void mydatablock(const char *ptr)
 
     //파일 열기
     FILE *myfs;
-    myfs = fopen("myfs.bin", "rb");
+    myfs = fopen("myfs", "rb");
     if (myfs == NULL)
     {
         printf("mydatablock() 함수 : 파일 열기에 실패했습니다.\n");
@@ -522,7 +522,12 @@ void mytree(const char *path_ptr)
 
     //디렉토리 구조 출력
     FILE *myfs;
-    myfs = fopen("myfs.bin", "rb");
+    myfs = fopen("myfs", "rb");
+    if (myfs == NULL)
+    {
+        printf("mytree() 함수 : 파일 열기에 실패했습니다.\n");
+        abort();
+    }
 
     dir_print(tree_inode, myfs);
 
@@ -553,7 +558,12 @@ int path_to_inode(const char *path_ptr)
     int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //디렉토리의 datablock에서 추출한 inode 번호를 가리킬 포인터
 
     FILE *myfs;
-    myfs = fopen("myfs.bin", "rb");
+    myfs = fopen("myfs", "rb");
+    if (myfs == NULL)
+    {
+        printf("path_to_inode() 함수 : 파일 열기에 실패했습니다.\n");
+        abort();
+    }
 
     path_ptr++; //루트(/) 넘어가기
 
@@ -747,4 +757,99 @@ char *current_dir_find(int inode, int high_inode, FILE *myfs)
     }    
 
     return tmp_dir_string_ptr;
+}
+
+
+/*
+이름    : mymkfs 함수
+작성자  : 이준혁
+기능    : 파일시스템을 만들고, 여러 값들을 초기화한다.
+받는값  : X
+리턴값  : X
+*/
+void mymkfs(void)
+{
+    //myfs 파일 존재 여부 확인
+    int exist; //파일이 존재하지 않는 경우 0, 존재하는 경우 1
+    FILE *test;
+
+    if((test = fopen("myfs", "rb")) == NULL) //파일이 존재하지 않는 경우
+    {
+        exist = 0;
+    }
+    else //파일이 존재하는 경우
+    {
+        exist = 1;
+    }
+
+    //fs 생성
+    int new_fs; //새 파일시스템을 생성할 경우 1
+
+    if(exist == 0) //파일이 존재하지 않는 경우
+    {
+        printf("파일시스템이 없습니다. 파일시스템을 만듭니다.\n");
+        
+        new_fs = 1;
+    }
+    else //파일이 존재하는 경우
+    {
+        char char_tmp;
+
+        while(1)
+        {
+            printf("파일시스템이 있습니다. 다시 만들겠습니까? (y/n) ");
+            char_tmp = getchar();
+
+            rewind(stdin); //버퍼 비우기
+
+            if((char_tmp == 'y') || (char_tmp == 'Y'))
+            {
+                printf("파일시스템을 다시 만들었습니다.\n");
+                new_fs = 1;
+                break;
+            }
+            else if((char_tmp == 'n') || (char_tmp == 'N'))
+            {
+                printf("파일시스템 재생성을 취소했습니다.\n");
+                return;
+            }
+            else
+            {
+                printf("잘못된 입력입니다.\n");
+            }
+        }
+    }
+
+    if(new_fs == 1)
+    {
+        FILE *myfs;
+
+        //myfs 파일 생성
+        myfs = fopen("myfs", "wb");
+
+        //superblock 초기화
+        SUPERBLOCK *sb_ptr = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK));
+        sb_ptr->inode_1 = 0;
+        sb_ptr->inode_2 = 0;
+        sb_ptr->inode_3 = 0;
+        sb_ptr->inode_4 = 0;
+        sb_ptr->data_block_1 = 0;
+        sb_ptr->data_block_2 = 0;
+        sb_ptr->data_block_3 = 0;
+        sb_ptr->data_block_4 = 0;
+        sb_ptr->data_block_5 = 0;
+        sb_ptr->data_block_6 = 0;
+        sb_ptr->data_block_7 = 0;
+        sb_ptr->data_block_8 = 0;
+
+        fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
+        fwrite(sb_ptr, sizeof(SUPERBLOCK), 1, myfs);
+
+        fclose(myfs);
+
+        //root 디렉토리 생성
+        mymkdir("/");
+    }
+
+    return;
 }
