@@ -97,4 +97,5 @@ int path_to_inode(const char *path_ptr);
 void dir_print(int inode, FILE *myfs);
 char *current_dir_find(int inode, int high_inode, FILE *myfs);
 void mymkfs(void);
-
+void mymv(char *file_1, char *file_2);
+void mv_to_dir(FILE *myfs, int file_1_inode, int file_2_inode, char *file_1_name, int count);

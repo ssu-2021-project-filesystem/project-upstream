@@ -23,6 +23,183 @@ int main(void)
     front_dir_list_ptr->next_ptr = NULL;
     rear_dir_list_ptr = front_dir_list_ptr;
 
+    //test
+    FILE *myfs = fopen("myfs", "wb");
+
+    int inode;
+    int datablock;
+    int dir_inode;
+    int *dir_inode_ptr = &dir_inode;
+    INODE *inode_ptr = (INODE *)malloc(sizeof(INODE)); //inode를 가리킬 포인터
+    char *dir_list_ptr = (char *)malloc(sizeof(char) * 9);
+    
+    char *minus_ptr = (char *)malloc(sizeof(char));
+    *minus_ptr = -1;
+
+    // /
+    //inode 읽기
+    inode = 1;
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (inode - 1)), SEEK_SET);
+    inode_ptr->size = 5 * (8 + sizeof(int));
+    inode_ptr->dir_1 = 0;
+    inode_ptr->type = 0;
+    fwrite(inode_ptr, sizeof(INODE), 1, myfs);
+
+    datablock = 1;
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (256 * (datablock - 1)), SEEK_SET);
+    sprintf(dir_list_ptr, "%s", "..");
+    dir_list_ptr[2] = 0;
+    fwrite(dir_list_ptr, 8, 1, myfs);
+    dir_inode = 1;
+    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
+
+    sprintf(dir_list_ptr, "%s", ".");
+    dir_list_ptr[1] = 0;
+    fwrite(dir_list_ptr, 8, 1, myfs);
+    dir_inode = 1;
+    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
+
+    sprintf(dir_list_ptr, "%s", "mnt");
+    dir_list_ptr[3] = 0;
+    fwrite(dir_list_ptr, 8, 1, myfs);
+    dir_inode = 2;
+    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
+
+    sprintf(dir_list_ptr, "%s", "test");
+    dir_list_ptr[4] = 0;
+    fwrite(dir_list_ptr, 8, 1, myfs);
+    dir_inode = 3;
+    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
+
+    sprintf(dir_list_ptr, "%s", "result2");
+    dir_list_ptr[7] = 0;
+    fwrite(dir_list_ptr, 8, 1, myfs);
+    dir_inode = 5;
+    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
+
+    fwrite(minus_ptr, sizeof(char), 1, myfs);
+
+    //result2
+    inode = 5;
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (inode - 1)), SEEK_SET);
+    inode_ptr->size = 2 * (8 + sizeof(int));
+    inode_ptr->dir_1 = 4;
+    inode_ptr->type = 1;
+    fwrite(inode_ptr, sizeof(INODE), 1, myfs);
+
+    datablock = 5;
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (256 * (datablock - 1)), SEEK_SET);
+
+    sprintf(dir_list_ptr, "%s", "..");
+    dir_list_ptr[2] = 0;
+    fwrite(dir_list_ptr, 8, 1, myfs);
+    dir_inode = 1;
+    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
+
+    sprintf(dir_list_ptr, "%s", ".");
+    dir_list_ptr[1] = 0;
+    fwrite(dir_list_ptr, 8, 1, myfs);
+    dir_inode = 5;
+    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
+
+    fwrite(minus_ptr, sizeof(char), 1, myfs);
+
+    // mnt
+    //inode 읽기
+    inode = 2;
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (inode - 1)), SEEK_SET);
+    inode_ptr->size = 3 * (8 + sizeof(int));
+    inode_ptr->dir_1 = 1;
+    inode_ptr->type = 0;
+    fwrite(inode_ptr, sizeof(INODE), 1, myfs);
+
+    datablock = 2;
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (256 * (datablock - 1)), SEEK_SET);
+
+    sprintf(dir_list_ptr, "%s", "..");
+    dir_list_ptr[2] = 0;
+    fwrite(dir_list_ptr, 8, 1, myfs);
+    dir_inode = 1;
+    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
+
+    sprintf(dir_list_ptr, "%s", ".");
+    dir_list_ptr[1] = 0;
+    fwrite(dir_list_ptr, 8, 1, myfs);
+    dir_inode = 2;
+    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
+
+    sprintf(dir_list_ptr, "%s", "result");
+    dir_list_ptr[6] = 0;
+    fwrite(dir_list_ptr, 8, 1, myfs);
+    dir_inode = 4;
+    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
+    
+    fwrite(minus_ptr, sizeof(char), 1, myfs);
+
+    //test(파일명)
+    inode = 3;
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (inode - 1)), SEEK_SET);
+    inode_ptr->size = 2 * (8 + sizeof(int));
+    inode_ptr->dir_1 = 2;
+    inode_ptr->type = 0;
+    fwrite(inode_ptr, sizeof(INODE), 1, myfs);
+
+    datablock = 3;
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (256 * (datablock - 1)), SEEK_SET);
+
+    sprintf(dir_list_ptr, "%s", "..");
+    dir_list_ptr[2] = 0;
+    fwrite(dir_list_ptr, 8, 1, myfs);
+    dir_inode = 1;
+    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
+
+    sprintf(dir_list_ptr, "%s", ".");
+    dir_list_ptr[1] = 0;
+    fwrite(dir_list_ptr, 8, 1, myfs);
+    dir_inode = 3;
+    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
+
+    fwrite(minus_ptr, sizeof(char), 1, myfs);
+
+    //result
+    inode = 4;
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (inode - 1)), SEEK_SET);
+    inode_ptr->size = 2 * (8 + sizeof(int));
+    inode_ptr->dir_1 = 3;
+    inode_ptr->type = 1;
+    fwrite(inode_ptr, sizeof(INODE), 1, myfs);
+
+    datablock = 4;
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (256 * (datablock - 1)), SEEK_SET);
+
+    sprintf(dir_list_ptr, "%s", "..");
+    dir_list_ptr[2] = 0;
+    fwrite(dir_list_ptr, 8, 1, myfs);
+    dir_inode = 2;
+    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
+
+    sprintf(dir_list_ptr, "%s", ".");
+    dir_list_ptr[1] = 0;
+    fwrite(dir_list_ptr, 8, 1, myfs);
+    dir_inode = 4;
+    fwrite(dir_inode_ptr, sizeof(int), 1, myfs);
+
+    fwrite(minus_ptr, sizeof(char), 1, myfs);
+
+    fclose(myfs);
+
+    //testend
+
     //쉘
     shell();
 
@@ -52,12 +229,12 @@ void shell(void)
     {
         //myfs 파일 존재여부 확인
         int exist = 0; //파일이 존재하지 않는 경우 0, 존재하는 경우 1 저장
-        FILE *test;
-        if((test = fopen("myfs", "rb")) != NULL) //파일이 존재하지 않는 경우
+        FILE *myfs_exist;
+        if((myfs_exist = fopen("myfs", "rb")) != NULL) //파일이 존재하지 않는 경우
         {
             exist = 1;
         }
-        fclose(test);
+        fclose(myfs_exist);
 
         //쉘 출력
         if(exist == 0) //myfs 파일이 존재하지 않는 경우
@@ -169,7 +346,7 @@ void shell(void)
         }
         else if((!strcmp("mymv", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mymv 함수
+            mymv(*(com_tmp_ptr + 1), *(com_tmp_ptr + 2));
         }
         else if((!strcmp("mytouch", *(com_tmp_ptr))) && (exist == 1))
         {
