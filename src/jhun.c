@@ -522,7 +522,7 @@ void mytree(const char *path_ptr)
 
     //디렉토리 구조 출력
     FILE *myfs;
-    myfs = fopen("myfs", "rb");
+    myfs = fopen("myfs", "rb+");
     if (myfs == NULL)
     {
         printf("mytree() 함수 : 파일 열기에 실패했습니다.\n");
@@ -771,9 +771,9 @@ void mymkfs(void)
 {
     //myfs 파일 존재 여부 확인
     int exist; //파일이 존재하지 않는 경우 0, 존재하는 경우 1
-    FILE *test;
+    FILE *myfs_exist;
 
-    if((test = fopen("myfs", "rb")) == NULL) //파일이 존재하지 않는 경우
+    if((myfs_exist = fopen("myfs", "rb")) == NULL) //파일이 존재하지 않는 경우
     {
         exist = 0;
     }
@@ -781,6 +781,7 @@ void mymkfs(void)
     {
         exist = 1;
     }
+    fclose(myfs_exist);
 
     //fs 생성
     int new_fs; //새 파일시스템을 생성할 경우 1
@@ -848,8 +849,214 @@ void mymkfs(void)
         fclose(myfs);
 
         //root 디렉토리 생성
-        mymkdir("/");
+        //test. git에 올릴 때는 주석 해제하기
+        //mymkdir("/");
     }
+
+    return;
+}
+
+
+/*
+이름    : mymv 함수
+작성자  : 양인석, 이준혁
+기능    : 파일의 이름을 바꾸거나 다른 디렉토리로 이동시킨다
+받는값  : X
+리턴값  : X
+*/
+void mymv(char *file_1, char *file_2)
+{ 
+    FILE *myfs;
+    myfs = fopen("myfs", "rb+");
+
+    //현재 디렉토리의 inode 정보 읽기
+    int saveinode = rear_dir_list_ptr->inode; //현재 디렉토리의 inode 번호를 저장할 변수
+    INODE *i_data = (INODE *)malloc(sizeof(INODE));
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (saveinode - 1), SEEK_SET);
+    fread(i_data, sizeof(INODE), 1, myfs);
+
+    int number_of_file = (i_data->size / (8 + sizeof(int)));
+
+    //file_2 찾기
+    char *tmp_filename = (char *)malloc(sizeof(char) * 8);
+    int *tmp_inodenumber = (int *)malloc(sizeof(int));
+    
+    int dir_inode = 0;
+    int filetype = 1; //두 번째 인자로 작성한 파일의 종류를 저장할 변수. 0이면 디렉토리 1이면 일반 파일
+    INODE *f_inode = (INODE *)malloc(sizeof(INODE)); //현재 디렉토리 내부 파일의 inode 정보를 저장할 변수
+
+    for(int i = 0; i < number_of_file; i++) //디렉토리 내의 파일 개수만큼의 횟수로 루프 생성
+    {
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * i_data->dir_1) + (i * (8 + sizeof(int))), SEEK_SET);
+        fread(tmp_filename, 8, 1, myfs); //첫 번째 인자에 들어온 파일의 이름
+        fread(tmp_inodenumber, sizeof(int), 1, myfs); //첫 번째 인자에 들어온 파일의 inode
+
+        if(strcmp(file_2, tmp_filename) == 0)
+        {
+            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (*tmp_inodenumber - 1)), SEEK_SET);
+            fread(f_inode, sizeof(INODE), 1, myfs);
+
+            if(f_inode->type == 0) //해당 파일이 디렉토리인 경우
+            {
+                filetype = 0;
+                dir_inode = *tmp_inodenumber;
+                
+                break;
+            }
+            else //해당 파일이 일반 파일인 경우
+            {
+                printf("%s 은/는 이미 존재하는 파일입니다.\n", file_2);
+
+                free(i_data);
+                free(tmp_filename);
+                free(tmp_inodenumber);
+                free(f_inode);
+
+                fclose(myfs);
+
+                return;
+            }
+        }
+    }
+
+    //file_1 찾기
+    int file_inode = 0;
+    int count = 0; //현재 디렉토리에서, 첫 번째 인자로 작성한 파일의 위치를 저장할 변수
+
+    for(int i = 0; i < number_of_file; i++) //디렉토리 내의 파일 개수만큼의 횟수로 루프 생성
+    {
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * i_data->dir_1) + (i * (8 + sizeof(int))), SEEK_SET);
+        fread(tmp_filename, 8, 1, myfs); //첫 번째 인자에 들어온 파일의 이름
+        fread(tmp_inodenumber, sizeof(int), 1, myfs); //첫 번째 인자에 들어온 파일의 inode
+
+        if(strcmp(file_1, tmp_filename) == 0)
+        {
+            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (*tmp_inodenumber - 1)), SEEK_SET);
+            fread(f_inode, sizeof(INODE), 1, myfs);
+
+            if(f_inode->type == 0) //디렉토리인 경우
+            {
+                printf("%s 은/는 디렉토리입니다.\n", file_1);
+
+                free(i_data);
+                free(tmp_filename);
+                free(tmp_inodenumber);
+                free(f_inode);
+
+                return;
+            }
+            else //일반 파일인 경우
+            {
+                file_inode = *tmp_inodenumber;
+
+                break;   
+            }
+        }
+        else
+        {
+            count++;
+        }
+    }
+
+    if(file_inode == 0) //file_1과 동일한 파일이 존재하지 않는 경우
+    {
+        printf("%s 이/가 존재하지 않습니다.\n", file_1);
+
+        return;
+    }
+
+    //작업 수행
+    if(filetype == 1) //해당 파일이 일반 파일인 경우(source_file, dest_file인 경우)
+    {
+        //file_2로 이름 변경
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * i_data->dir_1) + ((8 + sizeof(int)) * count), SEEK_SET);
+        fwrite(file_2, 8, 1, myfs);
+    }
+    else //해당 파일이 디렉토리인 경우(file, directory인 경우)
+    {
+        //file_2 디렉토리로 해당 파일 이동
+        mv_to_dir(myfs, file_inode, dir_inode, file_1, count);
+    }
+
+    free(i_data);
+    free(tmp_filename);
+    free(tmp_inodenumber);
+    free(f_inode);
+
+    fclose(myfs);
+    
+    return;
+}
+
+
+/*
+이름    : mv_to_dir 함수
+작성자  : 이준혁
+기능    : 파일을 다른 디렉토리로 이동시킨다
+받는값  : myfs 파일포인터, file_1의 inode, file_2의 inode, file_1의 이름, count 변수
+리턴값  : X
+*/
+void mv_to_dir(FILE *myfs, int file_1_inode, int file_2_inode, char *file_1_name, int count)
+{
+    //현재 디렉토리의 inode 정보 읽기
+    int saveinode = rear_dir_list_ptr->inode; //현재 디렉토리의 inode 번호를 저장할 변수
+    INODE *i_data = (INODE *)malloc(sizeof(INODE));
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (saveinode - 1), SEEK_SET);
+    fread(i_data, sizeof(INODE), 1, myfs);
+
+    int number_of_file = (i_data->size / (8 + sizeof(int)));
+
+    //현재 디렉토리 datablock에서 file_1 제거
+    char *tmp_filename = (char *)malloc(sizeof(char) * 8);
+    int *tmp_inodenumber = (int *)malloc(sizeof(int));
+
+    for(int i = count; i < (number_of_file - 1); i++)
+    {
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * i_data->dir_1) + ((i + 1) * (8 + sizeof(int))), SEEK_SET);
+        fread(tmp_filename, 8, 1, myfs);
+        fread(tmp_inodenumber, sizeof(int), 1, myfs);
+
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * i_data->dir_1) + (i * (8 + sizeof(int))), SEEK_SET);
+        fwrite(tmp_filename, 8, 1, myfs);
+        fwrite(tmp_inodenumber, sizeof(int), 1, myfs);
+    }
+
+    //맨 마지막에 -1 저장
+    char *tmp_char = (char *)malloc(sizeof(char));
+    *tmp_char = -1;
+    fwrite(tmp_char, sizeof(char), 1, myfs);
+
+    //현재 디렉토리의 크기 수정
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (saveinode - 1), SEEK_SET);
+    i_data->size = i_data->size - (8 + sizeof(int));
+    fwrite(i_data, sizeof(INODE), 1, myfs);
+
+    //file_2 디렉토리 datablock의 맨 마지막 위치로 이동, file_1 추가
+    INODE *dir_inode = (INODE *)malloc(sizeof(INODE));
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (file_2_inode - 1), SEEK_SET);
+    fread(dir_inode, sizeof(INODE), 1, myfs);
+
+    int *tmp_int = (int *)malloc(sizeof(int));
+    *tmp_int = file_1_inode;
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * dir_inode->dir_1) + dir_inode->size, SEEK_SET);
+    fwrite(file_1_name, 8, 1, myfs);
+    fwrite(tmp_int, sizeof(int), 1, myfs);
+
+    //맨 마지막에 -1 저장
+    fwrite(tmp_char, sizeof(char), 1, myfs);
+
+    //file_2 디렉토리의 크기 수정
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (file_2_inode - 1), SEEK_SET);
+    dir_inode->size = dir_inode->size + (8 + sizeof(int));
+    fwrite(dir_inode, sizeof(INODE), 1, myfs);
+
+    free(i_data);
+    free(tmp_filename);
+    free(tmp_inodenumber);
+    free(tmp_char);
+    free(dir_inode);
+    free(tmp_int);
 
     return;
 }
