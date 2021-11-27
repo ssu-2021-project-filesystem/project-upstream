@@ -126,15 +126,15 @@ void shell(void)
         }
         else if((!strcmp("myls", *(com_tmp_ptr))) && (exist == 1))
         {
-            //myls 함수
+            myls(*(com_tmp_ptr + 1));
         }
         else if((!strcmp("mycat", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mycat 함수
+            mycat(*(com_tmp_ptr + 1));
         }
         else if((!strcmp("myshowfile", *(com_tmp_ptr))) && (exist == 1))
         {
-            //myshowfile 함수
+            myshowfile(*(com_tmp_ptr + 1), *(com_tmp_ptr + 2), *(com_tmp_ptr + 3));
         }
         else if((!strcmp("mypwd", *(com_tmp_ptr))) && (exist == 1))
         {
