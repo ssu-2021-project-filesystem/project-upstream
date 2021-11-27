@@ -1,11 +1,14 @@
+//헤더파일
 #include "user.h"
 
 
+//전역변수
 //작업 디렉토리 경로를 저장할 linked list
-DIR_LIST *front_dir_list_ptr;
-DIR_LIST *rear_dir_list_ptr;
+DIR_LIST *front_dir_list_ptr = NULL;
+DIR_LIST *rear_dir_list_ptr = NULL;
 
 
+//함수
 /*
 이름    : main 함수
 작성자  : 이준혁
@@ -15,7 +18,7 @@ DIR_LIST *rear_dir_list_ptr;
 */
 int main(void)
 {
-    //linked list 초기화(move. 나중에 mymkfs() 함수로 옮기기)
+    //pwd linked list 생성
     front_dir_list_ptr = (DIR_LIST *)malloc(sizeof(DIR_LIST));
     front_dir_list_ptr->inode = 1;
     front_dir_list_ptr->name = "/";
@@ -49,10 +52,35 @@ void shell(void)
     //쉘 출력, 명령어 처리
     while(1)
     {
+        //myfs 파일 존재여부 확인
+        int exist = 0; //파일이 존재하지 않는 경우 0, 존재하는 경우 1 저장
+        FILE *myfs_exist;
+        if((myfs_exist = fopen("myfs", "rb")) != NULL) //파일이 존재하지 않는 경우
+        {
+            exist = 1;
+        }
+        fclose(myfs_exist);
+
         //쉘 출력
-        printf("[");
-        mypwd(); //mypwd() 함수로 경로 출력
-        printf(" ]$ ");
+        if(exist == 0) //myfs 파일이 존재하지 않는 경우
+        {
+            printf("$ ");
+        }
+        else //myfs 파일이 존재하는 경우
+        {
+            printf("[");
+            mypwd(); //mypwd() 함수로 경로 출력
+            printf(" ]$ ");
+        }
+
+        //포인터가 가리키는 메모리 공간 초기화
+        for(int i = 0; i < COM_SEP_NUM; i++)
+        {   
+            for(int j = 0; j < COM_SEP_SIZE; j++)
+            {
+                *(*(com_sep_ptr + i) + j) = 0;
+            }
+        }
 
         //명령어 입력
         char char_tmp;
@@ -60,6 +88,7 @@ void shell(void)
         int com_ptr_char_num = 0; //포인터 변수가 가리키는 문자의 인덱스
 
         rewind(stdin); //버퍼 비우기
+
         while((char_tmp = getchar()) != '\n')
         {
             if(char_tmp != ' ') //공백 문자가 아닌 경우
@@ -78,7 +107,7 @@ void shell(void)
         }
         *(*(com_sep_ptr + com_ptr_num) + com_ptr_char_num) = 0;
 
-        //입력 데이터 전처리
+        //입력 데이터 초기화, 전처리
         char **com_tmp_ptr = (char **)malloc(sizeof(char *) * COM_SEP_NUM); //4개의 포인터를 가리킬 수 있는 이차원 포인터
 
         for(int i = 0; i < (com_ptr_num + 1); i++)
@@ -93,84 +122,89 @@ void shell(void)
         //명령어 함수 호출
         if(!strcmp("mymkfs", *(com_tmp_ptr)))
         {
-            //mymkfs 함수
+            mymkfs();
         }
-        else if(!strcmp("myls", *(com_tmp_ptr)))
+        else if((!strcmp("myls", *(com_tmp_ptr))) && (exist == 1))
         {
-            //myls 함수
+            myls(*(com_tmp_ptr + 1));
         }
-        else if(!strcmp("mycat", *(com_tmp_ptr)))
+        else if((!strcmp("mycat", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mycat 함수
+            mycat(*(com_tmp_ptr + 1));
         }
-        else if(!strcmp("myshowfile", *(com_tmp_ptr)))
+        else if((!strcmp("myshowfile", *(com_tmp_ptr))) && (exist == 1))
         {
-            //myshowfile 함수
+            myshowfile(*(com_tmp_ptr + 1), *(com_tmp_ptr + 2), *(com_tmp_ptr + 3));
         }
-        else if(!strcmp("mypwd", *(com_tmp_ptr)))
+        else if((!strcmp("mypwd", *(com_tmp_ptr))) && (exist == 1))
         {
             mypwd();
             printf("\n");
         }
-        else if(!strcmp("mycd", *(com_tmp_ptr)))
+        else if((!strcmp("mycd", *(com_tmp_ptr))) && (exist == 1))
         {
             //mycd 함수
         }
-        else if(!strcmp("mycp", *(com_tmp_ptr)))
+        else if((!strcmp("mycp", *(com_tmp_ptr))) && (exist == 1))
         {
             //mycp 함수
         }
-        else if(!strcmp("mycpto", *(com_tmp_ptr)))
+        else if((!strcmp("mycpto", *(com_tmp_ptr))) && (exist == 1))
         {
             //mycpto 함수
         }
-        else if(!strcmp("mycpfrom", *(com_tmp_ptr)))
+        else if((!strcmp("mycpfrom", *(com_tmp_ptr))) && (exist == 1))
         {
             //mycpfrom 함수
         }
-        else if(!strcmp("mymkdir", *(com_tmp_ptr)))
+        else if((!strcmp("mymkdir", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mymkdir 함수
+            mymkdir(*(com_tmp_ptr + 1));
         }
-        else if(!strcmp("myrmdir", *(com_tmp_ptr)))
+        else if((!strcmp("myrmdir", *(com_tmp_ptr))) && (exist == 1))
         {
-            //myrmdir 함수
+            myrmdir(*(com_tmp_ptr + 1));
         }
-        else if(!strcmp("myrm", *(com_tmp_ptr)))
+        else if((!strcmp("myrm", *(com_tmp_ptr))) && (exist == 1))
         {
             //myrm 함수
         }
-        else if(!strcmp("mymv", *(com_tmp_ptr)))
+        else if((!strcmp("mymv", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mymv 함수
+            mymv(*(com_tmp_ptr + 1), *(com_tmp_ptr + 2));
         }
-        else if(!strcmp("mytouch", *(com_tmp_ptr)))
+        else if((!strcmp("mytouch", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mytouch 함수
+            mytouch(*(com_tmp_ptr + 1));
         }
-        else if(!strcmp("myinode", *(com_tmp_ptr)))
+        else if((!strcmp("myinode", *(com_tmp_ptr))) && (exist == 1))
         {
-            //myinode 함수
+            myinode(*(com_tmp_ptr + 1));
         }
-        else if(!strcmp("mydatablock", *(com_tmp_ptr)))
+        else if((!strcmp("mydatablock", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mydatablock 함수
+            mydatablock(*(com_tmp_ptr + 1));
         }
-        else if(!strcmp("mystate", *(com_tmp_ptr)))
+        else if((!strcmp("mystate", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mystate 함수
+            mystate();
         }
-        else if(!strcmp("mytree", *(com_tmp_ptr)))
+        else if((!strcmp("mytree", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mytree 함수
+            mytree(*(com_tmp_ptr + 1));
         }
-        else if(!strcmp("command", *(com_tmp_ptr)))
+        else if((!strcmp("command", *(com_tmp_ptr))) && (exist == 1))
         {
-            //command 함수
+            command();
         }
         else if(!strcmp("exit", *(com_tmp_ptr)))
         {
-            //exit 함수
+            printf("Bye....\n\n");
+            return;
+        }
+        else if(exist == 0)
+        {
+            printf("파일 시스템이 존재하지 않습니다.\n");
         }
         else
         {
