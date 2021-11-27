@@ -2,11 +2,13 @@
 #include "user.h"
 
 
+//전역변수
 //작업 디렉토리 경로를 저장할 linked list
 DIR_LIST *front_dir_list_ptr = NULL;
 DIR_LIST *rear_dir_list_ptr = NULL;
 
 
+//함수
 /*
 이름    : main 함수
 작성자  : 이준혁
@@ -52,12 +54,12 @@ void shell(void)
     {
         //myfs 파일 존재여부 확인
         int exist = 0; //파일이 존재하지 않는 경우 0, 존재하는 경우 1 저장
-        FILE *test;
-        if((test = fopen("myfs", "rb")) != NULL) //파일이 존재하지 않는 경우
+        FILE *myfs_exist;
+        if((myfs_exist = fopen("myfs", "rb")) != NULL) //파일이 존재하지 않는 경우
         {
             exist = 1;
         }
-        fclose(test);
+        fclose(myfs_exist);
 
         //쉘 출력
         if(exist == 0) //myfs 파일이 존재하지 않는 경우
@@ -169,7 +171,7 @@ void shell(void)
         }
         else if((!strcmp("mymv", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mymv 함수
+            mymv(*(com_tmp_ptr + 1), *(com_tmp_ptr + 2));
         }
         else if((!strcmp("mytouch", *(com_tmp_ptr))) && (exist == 1))
         {
