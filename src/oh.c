@@ -14,7 +14,8 @@ int acc_data();
 받는값  : 경로 문자열
 리턴값  : X
 */
-void mycd (char* path){
+void mycd (char* path)
+{
     if(path == NULL)
     {//path 인자가 없을시
         rear_dir_list_ptr == front_dir_list_ptr;//작업 디렉터리를 홈디렉터리로 설정
@@ -67,7 +68,8 @@ void mycd (char* path){
 받는값  : 파일명 1,2
 리턴값  : 리턴값
 */
-void mycpto (const char* source_file, const char* dest_file  ){
+void mycpto (const char* source_file, const char* dest_file  )
+{
     FILE *ofp;
     FILE *myfs;
     int c,d;
@@ -108,7 +110,8 @@ void mycpto (const char* source_file, const char* dest_file  ){
     }
 
     fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((inode_ptr->dir_1)- 1)),SEEK_SET);//새로운 파일에 복사
-    while(i != DATA_BLOCK_SIZE){
+    while(i != DATA_BLOCK_SIZE)
+    {
         d = getchar();
         putc(d,ofp);
         i++;
@@ -130,7 +133,8 @@ void mycpto (const char* source_file, const char* dest_file  ){
 리턴값  : 리턴값
 */
 
-void mycpfrom (const char* source_file, const char* dest_file  ){
+void mycpfrom (const char* source_file, const char* dest_file )
+{
     FILE *ifp;
     FILE *myfs;
     int c,size_F;
@@ -192,7 +196,8 @@ void mycpfrom (const char* source_file, const char* dest_file  ){
 리턴값  : 리턴값
 */
 
-void mycp(const char* source_file, const char* dest_file  ){
+void mycp(const char* source_file, const char* dest_file  )
+{
     FILE *myfs;
     int c,size_F;;
     int i = 0;
@@ -233,7 +238,8 @@ void mycp(const char* source_file, const char* dest_file  ){
     inode =*tmp_inode_ptr;
 
     fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((inode_data_ptr->dir_1)- 1)),SEEK_SET);//문자열 포인터에 복사해놓기
-    while(i != DATA_BLOCK_SIZE){
+    while(i != DATA_BLOCK_SIZE)
+    {
         d = getchar();
         strcat(tmp_data_string,d);
         i++;
@@ -293,7 +299,8 @@ void mycp(const char* source_file, const char* dest_file  ){
 리턴값  : 리턴값
 */
 
-void myrm(const char* file){
+void myrm(const char* file)
+{
     FILE *myfs;
     int c,i=0;
     int inode = 1;
@@ -336,7 +343,8 @@ void myrm(const char* file){
     fseek(myfs, BOOT_BLOCK_SIZE + 128 + ((inode_ptr -> dir_1) - 1),SEEK_SET);//DATABLOCK
     putchar(0);
     fseek(myfs, BOOT_BLOCK_SIZE + (sizeof(INODE)*128)+(DATA_BLOCK_SIZE)*((inode_ptr -> dir_1) - 1) ,SEEK_SET);
-    while(i != DATA_BLOCK_SIZE){
+    while(i != DATA_BLOCK_SIZE)
+    {
         putchar(0);
         i++;
     }
@@ -350,10 +358,12 @@ void myrm(const char* file){
 리턴값  : count값
 */
 
-int cntfound() {
+int cntfound() 
+{
     int cnt = 0;
     DIR_LIST* tmp_dir = front_dir_list_ptr;
-    while ((tmp_dir->next_ptr) != NULL){
+    while ((tmp_dir->next_ptr) != NULL)
+    {
         {
             cnt++;
             tmp_dir = tmp_dir->next_ptr;
@@ -370,7 +380,8 @@ int cntfound() {
 받는값  : X
 리턴값  : pwd 문자열값
 */
-char* prtpwd(){
+char* prtpwd()
+{
     char* s;
     char* pwd;
     DIR_LIST *tmp_ptr = front_dir_list_ptr;
@@ -400,7 +411,8 @@ char* prtpwd(){
 리턴값  : 가용중이지 않은 inode 번호
 */
 
-int acc_inode(){
+int acc_inode()
+{
     FILE* myfs;
     int t = 1;
 
@@ -468,7 +480,8 @@ int acc_inode(){
 받는값  : X
 리턴값  : 가용중이지 않은 datablock 번호
 */
-int acc_data(){
+int acc_data()
+{
     FILE* myfs;
     int t = 1;
 
@@ -484,7 +497,8 @@ int acc_data(){
     fread(sb_ptr, sizeof(SUPERBLOCK), 1, myfs);//사용중인 슈퍼블록 확인하여 가용중이지 않은 데이터블록에 파일 넣기 위함.
 
     unsigned mask;
-    while(1){ // 빈 데이터블록이 있을때 까지 무한 반복
+    while(1)
+    { // 빈 데이터블록이 있을때 까지 무한 반복
     if (t < 33) // data_block_1에 빈 data_block이 있을 경우
     {
         mask = 1 << (t - 1);
