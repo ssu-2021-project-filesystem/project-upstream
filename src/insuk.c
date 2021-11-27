@@ -1,5 +1,4 @@
 #include "user.h"
-#include <time.h>
 /*
 
 
@@ -218,7 +217,7 @@ void myrmdir(char *givenname)
     saveinode = rear_dir_list_ptr-> inode;
     FILE *myfs;
     myfs = fopen("myfs.bin", "rb+");
-    INODE *presenti_data = (INODE *)malloc(sizeof(INODE)); 
+    INODE *presenti_data = (INODE *)malloc(sizeof(INODE));
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
     fread(presenti_data, sizeof(INODE), 1, myfs);
     int n = presenti_data-> size/12;

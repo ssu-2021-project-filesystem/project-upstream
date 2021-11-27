@@ -159,11 +159,11 @@ void shell(void)
         }
         else if((!strcmp("mymkdir", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mymkdir 함수
+            mymkdir(*(com_tmp_ptr + 1));
         }
         else if((!strcmp("myrmdir", *(com_tmp_ptr))) && (exist == 1))
         {
-            //myrmdir 함수
+            myrmdir(*(com_tmp_ptr + 1));
         }
         else if((!strcmp("myrm", *(com_tmp_ptr))) && (exist == 1))
         {
@@ -175,7 +175,7 @@ void shell(void)
         }
         else if((!strcmp("mytouch", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mytouch 함수
+            mytouch(*(com_tmp_ptr + 1));
         }
         else if((!strcmp("myinode", *(com_tmp_ptr))) && (exist == 1))
         {
@@ -187,7 +187,7 @@ void shell(void)
         }
         else if((!strcmp("mystate", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mystate 함수
+            mystate();
         }
         else if((!strcmp("mytree", *(com_tmp_ptr))) && (exist == 1))
         {
