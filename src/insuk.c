@@ -239,9 +239,9 @@ void myrmdir(char *givenname)
     fread(i_data, sizeof(INODE), 1, myfs);
     saveinumber = *fileinode;
 
-    if(i_data-> type == 0 && i_data-> size == 24) //ë°ì´í„° í¬ê¸° = ë¹ˆ ë””ë ‰í„°ë¦¬ í¬ê¸°
+    if(i_data-> type == 0 && i_data-> size == 24) //µ¥ÀÌÅÍ Å©±â = ºó µğ·ºÅÍ¸® Å©±â
     {
-        //ë””ë ‰í„°ë¦¬ ì‚­ì œ
+        //µğ·ºÅÍ¸® »èÁ¦
         for(int i = count; i<(n-1); i++)
         {
             fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data->dir_1 - 1)) + 12 * (i + 1), SEEK_SET);
@@ -257,7 +257,7 @@ void myrmdir(char *givenname)
         char *minusone = "-1";
         fwrite(minusone, sizeof(char), 1, myfs);
 
-        //ìŠˆí¼ë¸”ë¡ ìˆ˜ì •
+        //½´ÆÛºí·Ï ¼öÁ¤
         SUPERBLOCK *sb_data = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK)); 
         fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
         fread(sb_data, sizeof(SUPERBLOCK), 1, myfs);
@@ -290,7 +290,7 @@ void myrmdir(char *givenname)
     }
     else
     {
-        printf("ì‚­ì œí•˜ë ¤ëŠ” ë””ë ‰í„°ë¦¬ì— íŒŒì¼ì´ ì¡´ì¬í•©ë‹ˆë‹¤.\në””ë ‰í„°ë¦¬ë¥¼ ì‚­ì œí• ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
+        printf("»èÁ¦ÇÏ·Á´Â µğ·ºÅÍ¸®¿¡ ÆÄÀÏÀÌ Á¸ÀçÇÕ´Ï´Ù.\nµğ·ºÅÍ¸®¸¦ »èÁ¦ÇÒ¼ö ¾ø½À´Ï´Ù.");
     }
 
     fclose(myfs);
@@ -394,7 +394,7 @@ void mytouch(char *givenname)
     }
     if(count == -1)
     {
-        //íŒŒì¼ìƒì„±
+        //ÆÄÀÏ»ı¼º
         SUPERBLOCK *sb_data = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK)); 
         fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
         fread(sb_data, sizeof(SUPERBLOCK), 1, myfs);
@@ -448,7 +448,7 @@ void mytouch(char *givenname)
     }
     else
     {
-        //íŒŒì¼ìˆ˜ì •ì‹œê°„ ë³€ê²½
+        //ÆÄÀÏ¼öÁ¤½Ã°£ º¯°æ
         INODE *i_data2 = (INODE *)malloc(sizeof(INODE)); 
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (20*(inodenumber2 - 1)), SEEK_SET);
         fread(i_data2, sizeof(INODE), 1, myfs);
