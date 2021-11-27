@@ -143,19 +143,19 @@ void shell(void)
         }
         else if((!strcmp("mycd", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mycd 함수
+            mycd(*(com_tmp_ptr + 1));
         }
         else if((!strcmp("mycp", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mycp 함수
+            mycp(*(com_tmp_ptr + 1), *(com_tmp_ptr + 2));
         }
         else if((!strcmp("mycpto", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mycpto 함수
+            mycpto(*(com_tmp_ptr + 1), *(com_tmp_ptr + 2));
         }
         else if((!strcmp("mycpfrom", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mycpfrom 함수
+            mycpfrom(*(com_tmp_ptr + 1), *(com_tmp_ptr + 2));
         }
         else if((!strcmp("mymkdir", *(com_tmp_ptr))) && (exist == 1))
         {
@@ -167,7 +167,7 @@ void shell(void)
         }
         else if((!strcmp("myrm", *(com_tmp_ptr))) && (exist == 1))
         {
-            //myrm 함수
+            myrm(*(com_tmp_ptr + 1));
         }
         else if((!strcmp("mymv", *(com_tmp_ptr))) && (exist == 1))
         {

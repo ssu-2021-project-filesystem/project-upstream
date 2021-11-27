@@ -1,11 +1,6 @@
 #include "user.h"
 #include <time.h>
 
-DIR_LIST* dirfound(char* fdir);
-char* prtpwd();
-int cntfound();
-int acc_inode();
-int acc_data();
 
 /*
 이름    : mycd 함수
