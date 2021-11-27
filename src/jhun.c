@@ -7,9 +7,8 @@
 
 
 //전역변수
-//move. 테스트해보고 안되면 user.h에 추가하기.
+//move. 이 파일에서만 사용한다. 문제 있으면 user.h에 선언 작성해두기
 int mytree_dir_layer = 0;
-
 
 
 //함수
@@ -531,6 +530,8 @@ void mytree(const char *path_ptr)
 
     dir_print(tree_inode, myfs);
 
+    printf("\n");
+
     fclose(myfs);
 
     return;
@@ -640,6 +641,7 @@ void dir_print(int inode, FILE *myfs)
     mytree_dir_layer++;
 
     INODE *inode_ptr = (INODE *)malloc(sizeof(INODE)); //inode를 가리킬 포인터
+    INODE *inode_file_ptr = (INODE *)malloc(sizeof(INODE)); //디렉토리 내부 파일의 inode를 가리킬 포인터
 
     int tmp_datablock; //inode의 datablock 번호를 저장할 변수
 
@@ -651,8 +653,15 @@ void dir_print(int inode, FILE *myfs)
     fread(inode_ptr, sizeof(INODE), 1, myfs);
     tmp_datablock = (int)(inode_ptr->dir_1 + 1);
 
-    //디렉토리 처리
-    int first = 0;
+    //파일 종류 검사
+    if(inode_ptr->type == 1) //일반 파일인 경우
+    {
+        printf("해당 파일은 일반 파일입니다.\n");
+
+        return;
+    }
+
+    //inode에 해당하는 이름 출력
     for(int i = 0; i < (inode_ptr->size / (8 + sizeof(int))); i++)
     {
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (256 * (tmp_datablock - 1)) + (i * (8 + sizeof(int))), SEEK_SET);
@@ -671,16 +680,20 @@ void dir_print(int inode, FILE *myfs)
                 //..에서 inode 찾아서 디렉토리명 출력
                 printf("%-7s", current_dir_find(inode, *tmp_inode_ptr, myfs));
             }
+        }
+    }
 
-            //디렉토리명 뒤에 출력할 문자
-            if(inode_ptr->size > (2 * (8 + sizeof(int))))
-            {
-                printf("-> ");
-            }
-            else
-            {
-                printf("\n");
-            }
+    //디렉토리 처리
+    int first = 0;
+    for(int i = 0; i < (inode_ptr->size / (8 + sizeof(int))); i++)
+    {
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (256 * (tmp_datablock - 1)) + (i * (8 + sizeof(int))), SEEK_SET);
+        fread(tmp_dir_string_ptr, 8, 1, myfs); //디렉토리명
+        fread(tmp_inode_ptr, sizeof(int), 1, myfs); //inode
+
+        if(strcmp(tmp_dir_string_ptr, "..") == 0)
+        {
+            ;
         }
         else if(strcmp(tmp_dir_string_ptr, ".") == 0)
         {
@@ -688,8 +701,20 @@ void dir_print(int inode, FILE *myfs)
         }
         else
         {
+            //해당 파일이 디렉토리인지 검사
+            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (*tmp_inode_ptr - 1)), SEEK_SET);
+            fread(inode_file_ptr, sizeof(INODE), 1, myfs);
+
+            if(inode_file_ptr->type == 1) //해당 파일이 일반 파일인 경우
+            {
+                continue;
+            }
+            
+            //화살표 출력
             if(first != 0) //첫 번째로 출력되는 디렉토리가 아닌 경우
             {
+                printf("\n");
+
                 for(int j = 0; j < mytree_dir_layer; j++)
                 {
                     if(j == (mytree_dir_layer - 1)) //마지막에는 ->까지 출력
@@ -704,6 +729,8 @@ void dir_print(int inode, FILE *myfs)
             }
             else //첫 번째로 출력되는 디렉토리인 경우
             {
+                printf("-> ");
+
                 first++;
             }
             
@@ -713,6 +740,7 @@ void dir_print(int inode, FILE *myfs)
 
 
     free(inode_ptr);
+    free(inode_file_ptr);
     free(tmp_dir_string_ptr);
     free(tmp_inode_ptr);
 
@@ -849,8 +877,7 @@ void mymkfs(void)
         fclose(myfs);
 
         //root 디렉토리 생성
-        //test. git에 올릴 때는 주석 해제하기
-        //mymkdir("/");
+        mymkdir("/");
     }
 
     return;
@@ -1022,6 +1049,7 @@ void mv_to_dir(FILE *myfs, int file_1_inode, int file_2_inode, char *file_1_name
     }
 
     //맨 마지막에 -1 저장
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * i_data->dir_1) + ((number_of_file - 1) * (8 + sizeof(int))), SEEK_SET);
     char *tmp_char = (char *)malloc(sizeof(char));
     *tmp_char = -1;
     fwrite(tmp_char, sizeof(char), 1, myfs);
