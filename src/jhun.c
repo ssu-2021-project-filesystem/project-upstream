@@ -808,8 +808,9 @@ void mymkfs(void)
     else //파일이 존재하는 경우
     {
         exist = 1;
+
+        fclose(myfs_exist);
     }
-    fclose(myfs_exist);
 
     //fs 생성
     int new_fs; //새 파일시스템을 생성할 경우 1

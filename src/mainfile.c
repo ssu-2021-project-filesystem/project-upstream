@@ -58,8 +58,9 @@ void shell(void)
         if((myfs_exist = fopen("myfs", "rb")) != NULL) //파일이 존재하지 않는 경우
         {
             exist = 1;
+
+            fclose(myfs_exist);
         }
-        fclose(myfs_exist);
 
         //쉘 출력
         if(exist == 0) //myfs 파일이 존재하지 않는 경우
