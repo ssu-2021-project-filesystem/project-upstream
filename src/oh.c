@@ -23,7 +23,7 @@ void mycd (char* path)
 
     else if (path != NULL)
     {
-        int first = 0;
+        int first = 0;//첫 / 잘라내기
         DIR_LIST *tmp_ptr;
         char *nm_ptr = strtok(path, "/");
         while (nm_ptr != NULL)//이름이 NULL값이 아니라면
