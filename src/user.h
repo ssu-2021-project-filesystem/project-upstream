@@ -109,3 +109,8 @@ void mymkdir(char *dir_name);
 void myrmdir(char *givenname);
 void mystate(void);
 void mytouch(char *givenname);
+
+//jin
+void myls(const char *ptr);
+void mycat(char *file);
+void myshowfile(int num1, int num2, char *file);

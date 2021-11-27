@@ -466,5 +466,5 @@ void mytouch(char *givenname)
 
     fclose(myfs);
 
-    return 0;
+    return;
 }
