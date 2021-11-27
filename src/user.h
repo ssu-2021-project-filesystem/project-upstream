@@ -114,3 +114,14 @@ void mytouch(char *givenname);
 void myls(const char *ptr);
 void mycat(char *file);
 void myshowfile(int num1, int num2, char *file);
+
+//oh
+void mycd (char* path);
+void mycpto (const char* source_file, const char* dest_file);
+void mycpfrom (const char* source_file, const char* dest_file);
+void mycp(const char* source_file, const char* dest_file);
+void myrm(const char* file);
+char* prtpwd();
+int cntfound();
+int acc_inode();
+int acc_data();
