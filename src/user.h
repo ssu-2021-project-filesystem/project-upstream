@@ -98,9 +98,6 @@ int path_to_inode(const char *path_ptr);
 void dir_print(int inode, FILE *myfs);
 char *current_dir_find(int inode, int high_inode, FILE *myfs);
 void mymkfs(void);
-<<<<<<< HEAD
-
-=======
 void mymv(char *file_1, char *file_2);
 void mv_to_dir(FILE *myfs, int file_1_inode, int file_2_inode, char *file_1_name, int count);
 
@@ -117,4 +114,3 @@ void mytouch(char *givenname);
 void myls(const char *ptr);
 void mycat(char *file);
 void myshowfile(int num1, int num2, char *file);
->>>>>>> 48f561e25857c560ab2649eb922a0a1eaaae0462

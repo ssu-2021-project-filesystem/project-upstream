@@ -54,21 +54,12 @@ void shell(void)
     {
         //myfs 파일 존재여부 확인
         int exist = 0; //파일이 존재하지 않는 경우 0, 존재하는 경우 1 저장
-<<<<<<< HEAD
-        FILE *test;
-        if((test = fopen("myfs", "rb")) != NULL) //파일이 존재하지 않는 경우
-        {
-            exist = 1;
-        }
-        fclose(test);
-=======
         FILE *myfs_exist;
         if((myfs_exist = fopen("myfs", "rb")) != NULL) //파일이 존재하지 않는 경우
         {
             exist = 1;
         }
         fclose(myfs_exist);
->>>>>>> 48f561e25857c560ab2649eb922a0a1eaaae0462
 
         //쉘 출력
         if(exist == 0) //myfs 파일이 존재하지 않는 경우
