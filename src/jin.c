@@ -234,7 +234,7 @@ void mycat(char *file)
                 {
                     char *test;
                     fread(test,sizeof(file),1,myfs);
-                    printf("%d", test);
+                    printf("%s", test);
                 }
 
 
