@@ -1,8 +1,10 @@
 #include "user.h"
 /*
-
-
-
+이름    : checkbit 함수
+작성자  : 양인석
+기능    : 비트열검사
+받는값  : int, unsigned
+리턴값  : int
 */
 int checkbit(int number, unsigned block)
 {
@@ -22,9 +24,11 @@ int checkbit(int number, unsigned block)
     return number;
 }
 /*
-
-
-
+이름    : change_superblock 함수
+작성자  : 양인석
+기능    : 슈퍼블록구조체변경
+받는값  : int, int, SUPERBLOCK *
+리턴값  : x
 */
 void change_superblock(int saveinumber, int savedbnumber, SUPERBLOCK *sb_data)
 {
@@ -103,9 +107,11 @@ void change_superblock(int saveinumber, int savedbnumber, SUPERBLOCK *sb_data)
     }
 }
 /*
-
-
-
+이름    : bit_print 함수
+작성자  : 양인석
+기능    : 비트열출력
+받는값  : unsigned
+리턴값  : x
 */
 void bit_print(unsigned a)
 {
@@ -119,9 +125,11 @@ void bit_print(unsigned a)
     }
 }
 /*
-
-
-
+이름    : mymkdir 함수
+작성자  : 양인석
+기능    : 디렉터리생성
+받는값  : char
+리턴값  : x
 */
 void mymkdir(char *dir_name)
 {
@@ -177,19 +185,16 @@ void mymkdir(char *dir_name)
     i_data-> dir_8 = 0;
     i_data-> indir = 0;
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinumber-1), SEEK_SET);
-    rewind(myfs);
     fwrite(i_data, sizeof(INODE), 1, myfs);
 
     char *f_name1 = ".", *f_name2 = "..";
-    int *saveinode;
+    int *saveinode = (int *)malloc(sizeof(int));
     *saveinode = rear_dir_list_ptr-> inode;
     INODE *i_data2 = (INODE *)malloc(sizeof(INODE));
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(*saveinode-1), SEEK_SET);
-    rewind(myfs);
     fread(i_data2, sizeof(INODE), 1, myfs);
 
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data2-> dir_1 - 1)) + i_data2-> size, SEEK_SET);
-    rewind(myfs);
     fwrite(dir_name, sizeof(dir_name), 1, myfs);
     fwrite(saveinode, sizeof(int), 1, myfs);
     char *minusone = (char *)malloc(sizeof(char));
@@ -202,14 +207,19 @@ void mymkdir(char *dir_name)
     fwrite(f_name2, sizeof(8), 1, myfs);
     fwrite(saveinode, sizeof(int), 1 ,myfs);
 
+    free(sb_data);
+    free(i_data);
+    free(i_data2);
     fclose(myfs);
 
     return;
 }
 /*
-    
-
-
+이름    : myrmdir 함수
+작성자  : 양인석
+기능    : 디렉터리 삭제
+받는값  : char *
+리턴값  : x
 */
 void myrmdir(char *givenname)
 {
@@ -286,20 +296,25 @@ void myrmdir(char *givenname)
         }
         fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
         fwrite(sb_data, sizeof(SUPERBLOCK), 1, myfs);
+        free(sb_data);
     }
     else
     {
         printf("삭제하려는 디렉터리에 파일이 존재합니다.\n디렉터리를 삭제할수 없습니다.");
     }
 
+    free(presenti_data);
+    free(i_data);
     fclose(myfs);
 
     return;
 }
 /*
-
-
-
+이름    : mystate 함수
+작성자  : 양인석
+기능    : 현재상태출력
+받는값  : x
+리턴값  : x
 */
 void mystate(void)
 {
@@ -352,14 +367,17 @@ void mystate(void)
     bit_print(sb_data-> data_block_8);
     printf("\n");
 
+    free(sb_data);
     fclose(myfs);
 
     return;
 }
 /*
-
-
-
+이름    : mytouch 함수
+작성자  : 양인석
+기능    : 파일생성 및 시간변경
+받는값  : char *
+리턴값  : x
 */
 void mytouch(char *givenname)
 {
@@ -444,6 +462,9 @@ void mytouch(char *givenname)
         i_data3->indir = 0;
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (20 * (saveinumber - 1)), SEEK_SET);
         fwrite(i_data3, sizeof(INODE), 1, myfs);
+        free(sb_data);
+        free(i_data3);
+
     }
     else
     {
@@ -462,8 +483,10 @@ void mytouch(char *givenname)
         i_data2-> second = t-> tm_sec;
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (20*(inodenumber2 - 1)), SEEK_SET);
         fwrite(i_data2, sizeof(INODE), 1, myfs);
+        free(i_data2);
     }
 
+    free(i_data);
     fclose(myfs);
 
     return;
