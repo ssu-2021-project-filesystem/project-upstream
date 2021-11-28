@@ -234,7 +234,7 @@ void mycat(char *file)
                 {
                     char *test;
                     fread(test,sizeof(file),1,myfs);
-                    printf("%s", *test);
+                    printf("%d", test);
                 }
 
 
@@ -316,14 +316,14 @@ void myshowfile(char *num1, char *num2, char *file)
 
                 else //부분 출력
                 {
-                    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (*in - 1)) + num1, SEEK_SET);
-                    char *test;
-
                     int first_num = atoi(num1);
                     int end_num = atoi(num2);
 
+                    fseek(myfs,  first_num - 1, SEEK_CUR);
+                    char *test;
+
                     fread(test, (end_num - first_num), 1, myfs);
-                    printf("%s", *test);
+                    printf("%s", test);
                 }
                 break;
             }
