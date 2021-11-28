@@ -202,6 +202,7 @@ void mycp(const char* source_file, const char* dest_file  )
     int c,size_F;;
     int i = 0;
     int inode = 1;
+    char tmp;
     char* d;
     time_t Time;
     struct tm* TimeInfo;
@@ -240,7 +241,8 @@ void mycp(const char* source_file, const char* dest_file  )
     fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((inode_data_ptr->dir_1)- 1)),SEEK_SET);//문자열 포인터에 복사해놓기
     while(i != DATA_BLOCK_SIZE)
     {
-        d = getchar();
+        tmp = getchar();
+        sprintf(d,"%d",tmp);
         strcat(tmp_data_string,d);
         i++;
     }
