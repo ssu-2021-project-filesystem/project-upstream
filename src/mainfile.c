@@ -58,8 +58,9 @@ void shell(void)
         if((myfs_exist = fopen("myfs", "rb")) != NULL) //파일이 존재하지 않는 경우
         {
             exist = 1;
+
+            fclose(myfs_exist);
         }
-        fclose(myfs_exist);
 
         //쉘 출력
         if(exist == 0) //myfs 파일이 존재하지 않는 경우
@@ -126,15 +127,15 @@ void shell(void)
         }
         else if((!strcmp("myls", *(com_tmp_ptr))) && (exist == 1))
         {
-            //myls 함수
+            myls(*(com_tmp_ptr + 1));
         }
         else if((!strcmp("mycat", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mycat 함수
+            mycat(*(com_tmp_ptr + 1));
         }
         else if((!strcmp("myshowfile", *(com_tmp_ptr))) && (exist == 1))
         {
-            //myshowfile 함수
+            myshowfile(*(com_tmp_ptr + 1), *(com_tmp_ptr + 2), *(com_tmp_ptr + 3));
         }
         else if((!strcmp("mypwd", *(com_tmp_ptr))) && (exist == 1))
         {
@@ -143,31 +144,31 @@ void shell(void)
         }
         else if((!strcmp("mycd", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mycd 함수
+            mycd(*(com_tmp_ptr + 1));
         }
         else if((!strcmp("mycp", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mycp 함수
+            mycp(*(com_tmp_ptr + 1), *(com_tmp_ptr + 2));
         }
         else if((!strcmp("mycpto", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mycpto 함수
+            mycpto(*(com_tmp_ptr + 1), *(com_tmp_ptr + 2));
         }
         else if((!strcmp("mycpfrom", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mycpfrom 함수
+            mycpfrom(*(com_tmp_ptr + 1), *(com_tmp_ptr + 2));
         }
         else if((!strcmp("mymkdir", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mymkdir 함수
+            mymkdir(*(com_tmp_ptr + 1));
         }
         else if((!strcmp("myrmdir", *(com_tmp_ptr))) && (exist == 1))
         {
-            //myrmdir 함수
+            myrmdir(*(com_tmp_ptr + 1));
         }
         else if((!strcmp("myrm", *(com_tmp_ptr))) && (exist == 1))
         {
-            //myrm 함수
+            myrm(*(com_tmp_ptr + 1));
         }
         else if((!strcmp("mymv", *(com_tmp_ptr))) && (exist == 1))
         {
@@ -175,7 +176,7 @@ void shell(void)
         }
         else if((!strcmp("mytouch", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mytouch 함수
+            mytouch(*(com_tmp_ptr + 1));
         }
         else if((!strcmp("myinode", *(com_tmp_ptr))) && (exist == 1))
         {
@@ -187,7 +188,7 @@ void shell(void)
         }
         else if((!strcmp("mystate", *(com_tmp_ptr))) && (exist == 1))
         {
-            //mystate 함수
+            mystate();
         }
         else if((!strcmp("mytree", *(com_tmp_ptr))) && (exist == 1))
         {

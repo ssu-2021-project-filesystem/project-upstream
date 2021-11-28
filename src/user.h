@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 
 
@@ -99,3 +100,28 @@ char *current_dir_find(int inode, int high_inode, FILE *myfs);
 void mymkfs(void);
 void mymv(char *file_1, char *file_2);
 void mv_to_dir(FILE *myfs, int file_1_inode, int file_2_inode, char *file_1_name, int count);
+
+//insuk
+int checkbit(int number, unsigned block);
+void change_superblock(int saveinumber, int savedbnumber, SUPERBLOCK *sb_data);
+void bit_print(unsigned a);
+void mymkdir(char *dir_name);
+void myrmdir(char *givenname);
+void mystate(void);
+void mytouch(char *givenname);
+
+//jin
+void myls(const char *ptr);
+void mycat(char *file);
+void myshowfile(int num1, int num2, char *file);
+
+//oh
+void mycd (char* path);
+void mycpto (const char* source_file, const char* dest_file);
+void mycpfrom (const char* source_file, const char* dest_file);
+void mycp(const char* source_file, const char* dest_file);
+void myrm(const char* file);
+char* prtpwd();
+int cntfound();
+int acc_inode();
+int acc_data();
