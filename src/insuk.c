@@ -226,7 +226,7 @@ void myrmdir(char *givenname)
     int saveinode, *fileinode, count, saveinumber;
     saveinode = rear_dir_list_ptr-> inode;
     FILE *myfs;
-    myfs = fopen("myfs.bin", "rb+");
+    myfs = fopen("myfs", "rb+");
     INODE *presenti_data = (INODE *)malloc(sizeof(INODE));
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
     fread(presenti_data, sizeof(INODE), 1, myfs);
@@ -319,7 +319,7 @@ void myrmdir(char *givenname)
 void mystate(void)
 {
     FILE *myfs;
-    myfs = fopen("myfs.bin", "rb");
+    myfs = fopen("myfs", "rb");
     SUPERBLOCK *sb_data = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK)); 
     fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
     fread(sb_data, sizeof(SUPERBLOCK), 1, myfs);
@@ -384,7 +384,7 @@ void mytouch(char *givenname)
     int saveinode;
     saveinode = rear_dir_list_ptr-> inode;
     FILE *myfs;
-    myfs = fopen("myfs.bin", "rb+");
+    myfs = fopen("myfs", "rb+");
     INODE *i_data = (INODE *)malloc(sizeof(INODE)); 
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
     fread(i_data, sizeof(INODE), 1, myfs);
