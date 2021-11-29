@@ -32,78 +32,68 @@ int checkbit(int number, unsigned block)
 */
 void change_superblock(int saveinumber, int savedbnumber, SUPERBLOCK *sb_data)
 {
+    unsigned mask = 1 << 31;
     if(saveinumber >= 1 && saveinumber <= 32)
     {
-        unsigned mask = 1 << 31;
-        mask >>= saveinumber;
+        mask >>= (saveinumber-1);
         sb_data-> inode_1 = sb_data-> inode_1 | mask;
     }
     else if(saveinumber >= 33 && saveinumber <= 64)
     {
-        unsigned mask = 1 << 31;
-        mask >>= (saveinumber - 32);
+        mask >>= (saveinumber - 33);
         sb_data-> inode_2 = sb_data-> inode_2 | mask;
     }
     else if(saveinumber >= 65 && saveinumber <= 96)
     {
-        unsigned mask = 1 << 31;
-        mask >>= (saveinumber - 64);
+        mask >>= (saveinumber - 65);
         sb_data-> inode_3 = sb_data-> inode_3 | mask;
     }
     else if(saveinumber >= 97 && saveinumber <= 128)
     {
-        unsigned mask = 1 << 31;
-        mask >>= (saveinumber - 96);
+        mask >>= (saveinumber - 97);
         sb_data-> inode_4 = sb_data-> inode_4 | mask;
     }
 
+    unsigned mask1 = 1 << 31;
     if(savedbnumber >= 1 && savedbnumber <= 32)
     {
-        unsigned mask = 1 << 31;
-        mask >>= savedbnumber;
-        sb_data-> data_block_1 = sb_data-> data_block_1 | mask;
+        mask1 >>= (savedbnumber-1);
+        sb_data-> data_block_1 = sb_data-> data_block_1 | mask1;
     }
     else if(savedbnumber >= 33 && savedbnumber <= 64)
     {
-        unsigned mask = 1 << 31;
-        mask >>= (savedbnumber - 32);
-        sb_data-> data_block_2 = sb_data-> data_block_2 | mask;
+        mask1 >>= (savedbnumber - 33);
+        sb_data-> data_block_2 = sb_data-> data_block_2 | mask1;
     }
     else if(savedbnumber >= 65 && savedbnumber <= 96)
     {
-        unsigned mask = 1 << 31;
-        mask >>= (savedbnumber - 64);
-        sb_data-> data_block_3 = sb_data-> data_block_3 | mask;
+        mask1 >>= (savedbnumber - 65);
+        sb_data-> data_block_3 = sb_data-> data_block_3 | mask1;
     }
     else if(savedbnumber >= 97 && savedbnumber <= 128)
     {
-        unsigned mask = 1 << 31;
-        mask >>= (savedbnumber - 96);
-        sb_data-> data_block_4 = sb_data-> data_block_4 | mask;
+        mask1 >>= (savedbnumber - 97);
+        sb_data-> data_block_4 = sb_data-> data_block_4 | mask1;
     }
     else if(savedbnumber >= 129 && savedbnumber <= 160)
     {
-        unsigned mask = 1 << 31;
-        mask >>= (savedbnumber - 128);
-        sb_data-> data_block_5 = sb_data-> data_block_5 | mask;
+        mask1 >>= (savedbnumber - 129);
+        sb_data-> data_block_5 = sb_data-> data_block_5 | mask1;
     }
     else if(savedbnumber >= 161 && savedbnumber <= 192)
     {
-        unsigned mask = 1 << 31;
-        mask >>= (savedbnumber - 160);
-        sb_data-> data_block_6 = sb_data-> data_block_6 | mask;
+        mask1 >>= (savedbnumber - 161);
+        sb_data-> data_block_6 = sb_data-> data_block_6 | mask1;
     }
     else if(savedbnumber >= 193 && savedbnumber <= 224)
     {
-        unsigned mask = 1 << 31;
-        mask >>= (savedbnumber - 192);
-        sb_data-> data_block_7 = sb_data-> data_block_7 | mask;
+        mask1 >>= (savedbnumber - 193);
+        sb_data-> data_block_7 = sb_data-> data_block_7 | mask1;
     }
     else if(savedbnumber >= 225 && savedbnumber <= 256)
     {
-        unsigned mask = 1 << 31;
-        mask >>= (savedbnumber - 224);
-        sb_data-> data_block_8 = sb_data-> data_block_8 | mask;
+        mask1 >>= (savedbnumber - 225);
+        sb_data-> data_block_8 = sb_data-> data_block_8 | mask1;
     }
 }
 /*
@@ -123,6 +113,7 @@ void bit_print(unsigned a)
         if(i % 4 == 0)
             putchar(' ');
     }
+    return;
 }
 /*
 이름    : mymkdir 함수
@@ -133,6 +124,11 @@ void bit_print(unsigned a)
 */
 void mymkdir(char *dir_name)
 {
+    if(dir_name == NULL)
+    {
+        printf("인자가 필요합니다.\n");
+        return;
+    }
     FILE *myfs;
     myfs = fopen("myfs", "rb+");
     SUPERBLOCK *sb_data = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK)); 
