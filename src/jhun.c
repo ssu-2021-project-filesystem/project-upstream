@@ -261,6 +261,14 @@ void myinode(const char *ptr)
 */
 void mydatablock(const char *ptr)
 {
+    //인자가 작성되지 않은 경우
+    if(ptr == NULL)
+    {
+        printf("인자를 입력하세요.\n");
+
+        return;
+    }
+
     // ptr이 가리키는 문자열을 정수로 전환, 올바른 값인지 검사
     int datablock = 0;  // datablock 번호
     int figure = 0; // ptr이 가리키고 있는 문자열의 자릿수
@@ -893,7 +901,15 @@ void mymkfs(void)
 리턴값  : X
 */
 void mymv(char *file_1, char *file_2)
-{ 
+{
+    //인자가 작성되지 않은 경우
+    if((file_1 == NULL) || (file_2 == NULL))
+    {
+        printf("인자를 입력하세요.\n");
+
+        return;
+    }
+
     FILE *myfs;
     myfs = fopen("myfs", "rb+");
 
