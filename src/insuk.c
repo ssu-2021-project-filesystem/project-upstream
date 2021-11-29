@@ -194,7 +194,7 @@ void mymkdir(char *dir_name)
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(*saveinode-1), SEEK_SET);
     fread(i_data2, sizeof(INODE), 1, myfs);
 
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data2-> dir_1 - 1)) + i_data2-> size, SEEK_SET);
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data2-> dir_1)) + i_data2-> size, SEEK_SET);
     fwrite(dir_name, sizeof(dir_name), 1, myfs);
     fwrite(saveinode, sizeof(int), 1, myfs);
     char *minusone = (char *)malloc(sizeof(char));
