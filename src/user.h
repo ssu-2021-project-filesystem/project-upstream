@@ -113,7 +113,7 @@ void mytouch(char *givenname);
 //jin
 void myls(const char *ptr);
 void mycat(char *file);
-void myshowfile(int num1, int num2, char *file);
+void myshowfile(char *num1, char *num2, char *file);
 
 //oh
 void mycd (char* path);
