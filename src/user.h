@@ -9,7 +9,7 @@
 //매크로
 //block 별 크기(바이트 단위)
 #define     BOOT_BLOCK_SIZE             2               //boot block의 총 크기
-#define     SUPER_BLOCK_SIZE            12              //super block의 총 크기
+#define     SUPER_BLOCK_SIZE            48              //super block의 총 크기
 #define     INODE_LIST_SIZE             (20 * 128)      //inode list의 총 크기(inode 하나의 크기 아님)
 
 #define     DATA_BLOCK_SIZE             256             //data block의 block 하나의 크기
@@ -44,6 +44,8 @@ typedef struct
 //inode 구조체
 typedef struct
 {
+    unsigned size : 32;     //파일 크기
+
     unsigned type : 8;      //파일 종류
     
     unsigned year : 8;      //파일 생성 일자
@@ -52,8 +54,6 @@ typedef struct
     unsigned hour : 8;      //파일 생성 일자
     unsigned minute : 8;    //파일 생성 일자
     unsigned second : 8;    //파일 생성 일자
-
-    unsigned size : 32;     //파일 크기
 
     unsigned dir_1 : 8;     //direct 블럭 번호
     unsigned dir_2 : 8;     //direct 블럭 번호

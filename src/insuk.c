@@ -35,7 +35,7 @@ void change_superblock(int saveinumber, int savedbnumber, SUPERBLOCK *sb_data)
     unsigned mask = 1 << 31;
     if(saveinumber >= 1 && saveinumber <= 32)
     {
-        mask >>= (saveinumber-1);
+        mask >>= (saveinumber - 1);
         sb_data-> inode_1 = sb_data-> inode_1 | mask;
     }
     else if(saveinumber >= 33 && saveinumber <= 64)
@@ -57,7 +57,7 @@ void change_superblock(int saveinumber, int savedbnumber, SUPERBLOCK *sb_data)
     unsigned mask1 = 1 << 31;
     if(savedbnumber >= 1 && savedbnumber <= 32)
     {
-        mask1 >>= (savedbnumber-1);
+        mask1 >>= (savedbnumber - 1);
         sb_data-> data_block_1 = sb_data-> data_block_1 | mask1;
     }
     else if(savedbnumber >= 33 && savedbnumber <= 64)
@@ -129,11 +129,13 @@ void mymkdir(char *dir_name)
         printf("인자가 필요합니다.\n");
         return;
     }
+
     FILE *myfs;
     myfs = fopen("myfs", "rb+");
-    SUPERBLOCK *sb_data = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK)); 
+    SUPERBLOCK *sb_data = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK));
     fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
     fread(sb_data, sizeof(SUPERBLOCK), 1, myfs);
+
     int saveinumber = 0;
     int savedbnumber = 0;
     saveinumber = checkbit(saveinumber, sb_data-> inode_1);
@@ -156,22 +158,29 @@ void mymkdir(char *dir_name)
     fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
     fwrite(sb_data, sizeof(SUPERBLOCK), 1, myfs);
 
-    INODE *i_data = (INODE *)malloc(sizeof(INODE)); 
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinumber-1), SEEK_SET);
+    INODE *i_data = (INODE *)malloc(sizeof(INODE));
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20 * (saveinumber-1), SEEK_SET);
     fread(i_data, sizeof(INODE), 1, myfs);
 
     time_t timer = time(NULL);
     struct tm* t;
     t = localtime(&timer);
     i_data-> type = 0;
-    i_data-> year = (t-> tm_year + 1900);
+    if(t->tm_year >= 100)
+    {
+        i_data->year = t->tm_year - 100;
+    }
+    else
+    {
+        i_data->year = t->tm_year;
+    }
     i_data-> month = (t-> tm_mon + 1);
     i_data-> date = t-> tm_mday;
     i_data-> hour = t-> tm_hour;
     i_data-> minute = t-> tm_min;
     i_data-> second = t-> tm_sec;
-    i_data-> size = 24;
-    i_data-> dir_1 = savedbnumber;
+    i_data-> size = 2 * (8 + sizeof(int));
+    i_data-> dir_1 = savedbnumber - 1;
     i_data-> dir_2 = 0;
     i_data-> dir_3 = 0;
     i_data-> dir_4 = 0;
@@ -185,27 +194,52 @@ void mymkdir(char *dir_name)
 
     char *f_name1 = ".", *f_name2 = "..";
     int *saveinode = (int *)malloc(sizeof(int));
-    *saveinode = rear_dir_list_ptr-> inode;
     INODE *i_data2 = (INODE *)malloc(sizeof(INODE));
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(*saveinode-1), SEEK_SET);
-    fread(i_data2, sizeof(INODE), 1, myfs);
-
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data2-> dir_1)) + i_data2-> size, SEEK_SET);
-    fwrite(dir_name, sizeof(dir_name), 1, myfs);
-    fwrite(saveinode, sizeof(int), 1, myfs);
     char *minusone = (char *)malloc(sizeof(char));
-    minusone = "-1";
-    fwrite(minusone, sizeof(char), 1, myfs);
+    *minusone = -1;
 
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (savedbnumber - 1)), SEEK_SET);
-    fwrite(f_name1, sizeof(8), 1, myfs);
-    fwrite(&saveinumber, sizeof(int), 1, myfs);
-    fwrite(f_name2, sizeof(8), 1, myfs);
-    fwrite(saveinode, sizeof(int), 1 ,myfs);
+    if(strcmp(dir_name, "/") == 0)
+    {
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (savedbnumber - 1)), SEEK_SET);
+        fwrite(f_name1, 8, 1, myfs);
+        fwrite(&saveinumber, sizeof(int), 1, myfs);
+        fwrite(f_name2, 8, 1, myfs);
+        fwrite(&saveinumber, sizeof(int), 1 ,myfs);
+        fwrite(minusone, sizeof(char), 1, myfs);
+    }
+    else
+    {
+        //현재 디렉토리의 inode 가져오기
+        *saveinode = rear_dir_list_ptr-> inode;
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(*saveinode-1), SEEK_SET);
+        fread(i_data2, sizeof(INODE), 1, myfs);
+
+        //현재 디렉토리 datablock에 디렉토리 추가
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data2-> dir_1)) + i_data2-> size, SEEK_SET);
+        fwrite(dir_name, 8, 1, myfs);
+        fwrite(&saveinumber, sizeof(int), 1, myfs);
+        fwrite(minusone, sizeof(char), 1, myfs);
+
+        //현재 디렉토리 inode 수정(size 멤버)
+        i_data2->size += (8 + sizeof(int));
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(*saveinode-1), SEEK_SET);
+        fwrite(i_data2, sizeof(INODE), 1, myfs);
+
+        //새 디렉토리 datablock에 . .. 추가
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (savedbnumber - 1)), SEEK_SET);
+        fwrite(f_name1, 8, 1, myfs);
+        fwrite(&saveinumber, sizeof(int), 1, myfs);
+        fwrite(f_name2, 8, 1, myfs);
+        fwrite(saveinode, sizeof(int), 1 ,myfs);
+        fwrite(minusone, sizeof(char), 1, myfs);
+    }
 
     free(sb_data);
     free(i_data);
+    free(saveinode);
     free(i_data2);
+    free(minusone);
+
     fclose(myfs);
 
     return;
