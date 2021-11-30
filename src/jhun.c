@@ -123,11 +123,11 @@ void myinode(const char *ptr)
     fread(sb_ptr, sizeof(SUPERBLOCK), 1, myfs);
 
     // inode 사용 여부 확인하기
-    unsigned mask;
+    unsigned mask = 1 << 31;
 
     if (inode < 33) // inode_1에 정보가 들어있는 경우
     {
-        mask = 1 << (inode - 1);
+        mask >>= (inode - 1);
         if ((sb_ptr->inode_1 & mask) == 0)
         {
             printf("해당 inode는 사용 중이 아닙니다.\n");
@@ -138,7 +138,7 @@ void myinode(const char *ptr)
     }
     else if (inode < 65) // inode_2에 정보가 들어있는 경우
     {
-        mask = 1 << ((inode - 32) - 1);
+        mask >>= ((inode - 32) - 1);
         if ((sb_ptr->inode_2 & mask) == 0)
         {
             printf("해당 inode는 사용 중이 아닙니다.\n");
@@ -149,7 +149,7 @@ void myinode(const char *ptr)
     }
     else if (inode < 97) // inode_3에 정보가 들어있는 경우
     {
-        mask = 1 << ((inode - 64) - 1);
+        mask >>= ((inode - 64) - 1);
         if ((sb_ptr->inode_3 & mask) == 0)
         {
             printf("해당 inode는 사용 중이 아닙니다.\n");
@@ -160,7 +160,7 @@ void myinode(const char *ptr)
     }
     else // inode_4에 정보가 들어있는 경우
     {
-        mask = 1 << ((inode - 96) - 1);
+        mask >>= ((inode - 96) - 1);
         if ((sb_ptr->inode_4 & mask) == 0)
         {
             printf("해당 inode는 사용 중이 아닙니다.\n");
@@ -190,11 +190,11 @@ void myinode(const char *ptr)
     printf("생성일자 : ");
     if (inode_data_ptr->year > 50)
     {
-        printf("19%d/", inode_data_ptr->year);
+        printf("19%02d/", inode_data_ptr->year);
     }
     else
     {
-        printf("20%d/", inode_data_ptr->year);
+        printf("20%02d/", inode_data_ptr->year);
     }
     printf("%02d/%02d ", inode_data_ptr->month, inode_data_ptr->date);
     printf("%02d:%02d:%02d\n", inode_data_ptr->hour, inode_data_ptr->minute, inode_data_ptr->second);
@@ -325,11 +325,11 @@ void mydatablock(const char *ptr)
     fread(sb_ptr, sizeof(SUPERBLOCK), 1, myfs);
 
     // datablock 사용 여부 확인하기
-    unsigned mask;
+    unsigned mask = 1 << 31;
 
     if (datablock < (32 * 1 + 1)) // data_block_1에 정보가 들어있는 경우
     {
-        mask = 1 << (datablock - 1);
+        mask >>= (datablock - 1);
         if ((sb_ptr->data_block_1 & mask) == 0)
         {
             printf("해당 datablock은 사용 중이 아닙니다.\n");
@@ -340,7 +340,7 @@ void mydatablock(const char *ptr)
     }
     else if (datablock < (32 * 2 + 1)) // data_block_2에 정보가 들어있는 경우
     {
-        mask = 1 << ((datablock - (32 * 1)) - 1);
+        mask >>= ((datablock - (32 * 1)) - 1);
         if ((sb_ptr->data_block_2 & mask) == 0)
         {
             printf("해당 datablock은 사용 중이 아닙니다.\n");
@@ -351,7 +351,7 @@ void mydatablock(const char *ptr)
     }
     else if (datablock < (32 * 3 + 1)) // data_block_3에 정보가 들어있는 경우
     {
-        mask = 1 << ((datablock - (32 * 2)) - 1);
+        mask >>= ((datablock - (32 * 2)) - 1);
         if ((sb_ptr->data_block_3 & mask) == 0)
         {
             printf("해당 datablock은 사용 중이 아닙니다.\n");
@@ -362,7 +362,7 @@ void mydatablock(const char *ptr)
     }
     else if (datablock < (32 * 4 + 1)) // data_block_4에 정보가 들어있는 경우
     {
-        mask = 1 << ((datablock - (32 * 3)) - 1);
+        mask >>= ((datablock - (32 * 3)) - 1);
         if ((sb_ptr->data_block_4 & mask) == 0)
         {
             printf("해당 datablock은 사용 중이 아닙니다.\n");
@@ -373,7 +373,7 @@ void mydatablock(const char *ptr)
     }
     else if (datablock < (32 * 5 + 1)) // data_block_5에 정보가 들어있는 경우
     {
-        mask = 1 << ((datablock - (32 * 4)) - 1);
+        mask >>= ((datablock - (32 * 4)) - 1);
         if ((sb_ptr->data_block_5 & mask) == 0)
         {
             printf("해당 datablock은 사용 중이 아닙니다.\n");
@@ -384,7 +384,7 @@ void mydatablock(const char *ptr)
     }
     else if (datablock < (32 * 6 + 1)) // data_block_6에 정보가 들어있는 경우
     {
-        mask = 1 << ((datablock - (32 * 5)) - 1);
+        mask >>= ((datablock - (32 * 5)) - 1);
         if ((sb_ptr->data_block_6 & mask) == 0)
         {
             printf("해당 datablock은 사용 중이 아닙니다.\n");
@@ -395,7 +395,7 @@ void mydatablock(const char *ptr)
     }
     else if (datablock < (32 * 7 + 1)) // data_block_7에 정보가 들어있는 경우
     {
-        mask = 1 << ((datablock - (32 * 6)) - 1);
+        mask >>= ((datablock - (32 * 6)) - 1);
         if ((sb_ptr->data_block_7 & mask) == 0)
         {
             printf("해당 datablock은 사용 중이 아닙니다.\n");
@@ -406,7 +406,7 @@ void mydatablock(const char *ptr)
     }
     else if (datablock < (32 * 8 + 1)) // data_block_8에 정보가 들어있는 경우
     {
-        mask = 1 << ((datablock - (32 * 7)) - 1);
+        mask >>= ((datablock - (32 * 7)) - 1);
         if ((sb_ptr->data_block_8 & mask) == 0)
         {
             printf("해당 datablock은 사용 중이 아닙니다.\n");
