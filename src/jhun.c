@@ -205,10 +205,8 @@ void myinode(const char *ptr)
     // direct
     printf("직접 블록 목록 : \n");
 
-    if (inode_data_ptr->dir_1 != 0)
-    {
-        printf(" #0 직접 데이터 블록 : %d\n", inode_data_ptr->dir_1 + 1);
-    }
+    printf(" #0 직접 데이터 블록 : %d\n", inode_data_ptr->dir_1 + 1);
+
     if (inode_data_ptr->dir_2 != 0)
     {
         printf(" #1 직접 데이터 블록 : %d\n", inode_data_ptr->dir_2 + 1);

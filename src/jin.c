@@ -272,7 +272,7 @@ void myshowfile(char *num1, char *num2, char *file)
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (num - 1), SEEK_SET);
     fread(inode_data, sizeof(INODE), 1, myfs);
     int file_num = (inode_data->size / (8 + sizeof(int)));
-
+        
 
     // 파일 찾기
     int dir_inode = 0;

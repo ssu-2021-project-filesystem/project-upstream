@@ -411,35 +411,49 @@ void mystate(void)
 */
 void mytouch(char *givenname)
 {
+    if(strlen(givenname) > 7)
+    {
+        printf("문자열이 너무 깁니다. (최대 7글자)\n");
+
+        return;
+    }
+
     int saveinode;
-    saveinode = rear_dir_list_ptr-> inode;
+    saveinode = rear_dir_list_ptr-> inode; //현재 디렉토리의 inode 번호 저장
     FILE *myfs;
     myfs = fopen("myfs", "rb+");
+
+    //현재 디렉토리의 inode 정보 불러오기
     INODE *i_data = (INODE *)malloc(sizeof(INODE)); 
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
     fread(i_data, sizeof(INODE), 1, myfs);
     
-    char *filename;
-    int *inodenumber, inodenumber2; 
+    char *filename = (char *)malloc(sizeof(char));
+    int *inodenumber = (int *)malloc(sizeof(int));
+    int inodenumber2; 
     unsigned count = 0;
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data-> dir_1 - 1)), SEEK_SET);
-    while(1)
+
+    int dir_file_num = i_data->size / (8 + sizeof(int));
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * i_data->dir_1), SEEK_SET);
+    for(int i = 0; i < dir_file_num; i++)
     {
-        fread(filename, sizeof(8), 1, myfs);
+        fread(filename, 8, 1, myfs);
         fread(inodenumber, sizeof(int), 1, myfs);
-        inodenumber2 = *inodenumber;
-        if(filename == NULL)
-        {
-            count = -1;
-            break;
-        }
+
         if(strcmp(givenname, filename) == 0)
         {
+            inodenumber2 = *inodenumber;
+
             break;
         }
-        count++;
+        else
+        {
+            count++;
+        }
     }
-    if(count == -1)
+
+    if(count == dir_file_num)
     {
         //파일생성
         SUPERBLOCK *sb_data = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK)); 
@@ -474,27 +488,46 @@ void mytouch(char *givenname)
         struct tm* t;
         t = localtime(&timer);
         i_data3->type = 1;
-        i_data3->year = (t->tm_year + 1900);
-        i_data3->month = (t->tm_mon + 1);
-        i_data3->date = t->tm_mday;
-        i_data3->hour = t->tm_hour;
-        i_data3->minute = t->tm_min;
-        i_data3->second = t->tm_sec;
-        i_data3->size = 0;
-        i_data3->dir_1 = savedbnumber;
-        i_data3->dir_2 = 0;
-        i_data3->dir_3 = 0;
-        i_data3->dir_4 = 0;
-        i_data3->dir_5 = 0;
-        i_data3->dir_6 = 0;
-        i_data3->dir_7 = 0;
-        i_data3->dir_8 = 0;
-        i_data3->indir = 0;
+        if(t->tm_year >= 100)
+        {
+            i_data3->year = t->tm_year - 100;
+        }
+        else
+        {
+            i_data3->year = t->tm_year;
+        }
+        i_data3-> month = (t-> tm_mon + 1);
+        i_data3-> date = t-> tm_mday;
+        i_data3-> hour = t-> tm_hour;
+        i_data3-> minute = t-> tm_min;
+        i_data3-> second = t-> tm_sec;
+        i_data3-> size = 0;
+        i_data3-> dir_1 = savedbnumber - 1;
+        i_data3-> dir_2 = 0;
+        i_data3-> dir_3 = 0;
+        i_data3-> dir_4 = 0;
+        i_data3-> dir_5 = 0;
+        i_data3-> dir_6 = 0;
+        i_data3-> dir_7 = 0;
+        i_data3-> dir_8 = 0;
+        i_data3-> indir = 0;
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (20 * (saveinumber - 1)), SEEK_SET);
         fwrite(i_data3, sizeof(INODE), 1, myfs);
+
+        //현재 디렉토리의 datablock에 반영
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * i_data->dir_1) + i_data->size, SEEK_SET);
+        fwrite(givenname, 8, 1, myfs);
+        fwrite(&saveinumber, sizeof(int), 1, myfs);
+        char minus_tmp = -1;
+        fwrite(&minus_tmp, sizeof(char), 1, myfs);
+
+        //현재 디렉토리의 size 멤버에 반영
+        i_data->size += 8 + sizeof(int);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
+        fwrite(i_data, sizeof(INODE), 1, myfs);
+
         free(sb_data);
         free(i_data3);
-
     }
     else
     {
@@ -505,7 +538,14 @@ void mytouch(char *givenname)
         time_t timer = time(NULL);
         struct tm* t;
         t = localtime(&timer);
-        i_data2-> year = (t-> tm_year + 1900);
+        if(t->tm_year >= 100)
+        {
+            i_data2->year = t->tm_year - 100;
+        }
+        else
+        {
+            i_data2->year = t->tm_year;
+        }
         i_data2-> month = (t-> tm_mon + 1);
         i_data2-> date = t-> tm_mday;
         i_data2-> hour = t-> tm_hour;
@@ -517,6 +557,7 @@ void mytouch(char *givenname)
     }
 
     free(i_data);
+
     fclose(myfs);
 
     return;
