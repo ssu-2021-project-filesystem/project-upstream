@@ -459,7 +459,7 @@ void mystate(void)
     printf("Data block state :\n");
     printf("Total : 256 blocks / 65536 byte\n");
     printf("used : %d blocks / %d byte\n", (savedbnumber - 1), ((savedbnumber - 1) * 256));
-    printf("Available : %d blocks / %d byte\n", (129 - savedbnumber), ((129 - savedbnumber) * 256));
+    printf("Available : %d blocks / %d byte\n", (257 - savedbnumber), ((257 - savedbnumber) * 256));
     printf("Data block map :\n");
     bit_print(sb_data-> data_block_1);
     bit_print(sb_data-> data_block_2);
