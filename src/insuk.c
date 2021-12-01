@@ -253,7 +253,8 @@ void mymkdir(char *dir_name)
 */
 void myrmdir(char *givenname)
 {
-    int saveinode, *fileinode, count, saveinumber;
+    int saveinode, count, saveinumber;
+    int *fileinode = (int *)malloc(sizeof(int));
     saveinode = rear_dir_list_ptr-> inode;
     FILE *myfs;
     myfs = fopen("myfs", "rb+");
@@ -261,11 +262,11 @@ void myrmdir(char *givenname)
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
     fread(presenti_data, sizeof(INODE), 1, myfs);
     int n = presenti_data-> size/12;
-    char *filename;
+    char *filename = (char *)malloc(sizeof(char));
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data-> dir_1)), SEEK_SET);
     for(int i=0; i<n; i++)
     {
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data-> dir_1 - 1)), SEEK_SET);
-        fread(filename, sizeof(8), 1, myfs);
+        fread(filename, 8, 1, myfs);
         fread(fileinode, sizeof(int), 1, myfs);
         if(strcmp(givenname, filename) == 0)
         {
@@ -278,55 +279,98 @@ void myrmdir(char *givenname)
     fread(i_data, sizeof(INODE), 1, myfs);
     saveinumber = *fileinode;
 
-    if(i_data-> type == 0 && i_data-> size == 24) //데이터 크기 = 빈 디렉터리 크기
+    if(i_data-> type == 0 && i_data-> size == ((8 + sizeof(int)) * 2)) //데이터 크기 = 빈 디렉터리 크기
     {
         //디렉터리 삭제
-        for(int i = count; i<(n-1); i++)
+        for(int i = count; i<(n); i++)
         {
-            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data->dir_1 - 1)) + 12 * (i + 1), SEEK_SET);
-            fread(filename, sizeof(8), 1, myfs);
+            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data->dir_1)) + (8 + sizeof(int)) * (i + 1), SEEK_SET);
+            fread(filename, 8, 1, myfs);
             fread(fileinode, sizeof(int), 1, myfs);
-            rewind(myfs);
-            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data->dir_1 - 1)) + 12 * (i), SEEK_SET);
-            fwrite(filename, sizeof(8), 1, myfs);
-            fwrite(fileinode, sizeof(int), 1, myfs);
-            rewind(myfs);            
+            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data->dir_1)) + (8 + sizeof(int)) * (i), SEEK_SET);
+            fwrite(filename, 8, 1, myfs);
+            fwrite(fileinode, sizeof(int), 1, myfs);            
         }
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data->dir_1 - 1)) + 12 * (n - 1), SEEK_SET);
-        char *minusone = "-1";
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data->dir_1)) + (8 + sizeof(int)) * (n - 1), SEEK_SET);
+        char *minusone = (char *)malloc(sizeof(char));
+        *minusone = -1;
         fwrite(minusone, sizeof(char), 1, myfs);
+        free(minusone);
 
         //슈퍼블록 수정
         SUPERBLOCK *sb_data = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK)); 
         fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
         fread(sb_data, sizeof(SUPERBLOCK), 1, myfs);
+        unsigned mask = 1 << 31;
         if(saveinumber>0 && saveinumber<=32)
         {
-            unsigned mask = 1;
-            mask <<= (32 - saveinumber);
+            mask >>= (saveinumber - 1);
             sb_data-> inode_1 = sb_data-> inode_1 ^ mask;
         }
         else if(saveinumber>33 && saveinumber<=64)
         {
-            unsigned mask = 1;
-            mask <<= (32 - (saveinumber - 32));
-            sb_data-> inode_1 = sb_data-> inode_1 ^ mask;
+            mask <<= (saveinumber - 33);
+            sb_data-> inode_2 = sb_data-> inode_2 ^ mask;
         }
         else if(saveinumber>65 && saveinumber<=96)
         {
-            unsigned mask = 1;
-            mask <<= (32 - (saveinumber - 64));
-            sb_data-> inode_2 = sb_data-> inode_2 ^ mask;
+            mask <<= (saveinumber - 65);
+            sb_data-> inode_3 = sb_data-> inode_3 ^ mask;
         }
         else if(saveinumber>97 && saveinumber<=128)
         {
-            unsigned mask = 1;
-            mask <<= (32 - (saveinumber - 96));
-            sb_data-> inode_1 = sb_data-> inode_1 ^ mask;
+            mask <<= (saveinumber - 97);
+            sb_data-> inode_4 = sb_data-> inode_4 ^ mask;
+        }
+        unsigned mask1 = 1 << 31;
+        if(i_data-> dir_1 >= 0 && i_data-> dir_1 <32)
+        {
+            mask1 >>= (i_data-> dir_1);
+            sb_data-> data_block_1 = sb_data-> data_block_1 ^ mask1;
+        }
+        else if(i_data-> dir_1 >= 32 && i_data-> dir_1 <64)
+        {
+            mask1 >>= (i_data-> dir_1 - 32);
+            sb_data-> data_block_2 = sb_data-> data_block_2 ^ mask1;
+        }
+        else if(i_data-> dir_1 >= 64 && i_data-> dir_1 <96)
+        {
+            mask1 >>= (i_data-> dir_1 - 64);
+            sb_data-> data_block_3 = sb_data-> data_block_3 ^ mask1;
+        }
+        else if(i_data-> dir_1 >= 96 && i_data-> dir_1 <128)
+        {
+            mask1 >>= (i_data-> dir_1 - 96);
+            sb_data-> data_block_4 = sb_data-> data_block_4 ^ mask1;
+        }
+        else if(i_data-> dir_1 >= 128 && i_data-> dir_1 <160)
+        {
+            mask1 >>= (i_data-> dir_1 - 128);
+            sb_data-> data_block_5 = sb_data-> data_block_5 ^ mask1;
+        }
+        else if(i_data-> dir_1 >= 160 && i_data-> dir_1 <192)
+        {
+            mask1 >>= (i_data-> dir_1 - 160);
+            sb_data-> data_block_6 = sb_data-> data_block_6 ^ mask1;
+        }
+        else if(i_data-> dir_1 >= 192 && i_data-> dir_1 <224)
+        {
+            mask1 >>= (i_data-> dir_1 - 192);
+            sb_data-> data_block_7 = sb_data-> data_block_7 ^ mask1;
+        }
+        else if(i_data-> dir_1 >= 224 && i_data-> dir_1 <256)
+        {
+            mask1 >>= (i_data-> dir_1 - 224);
+            sb_data-> data_block_8 = sb_data-> data_block_8 ^ mask1;
         }
         fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
         fwrite(sb_data, sizeof(SUPERBLOCK), 1, myfs);
         free(sb_data);
+
+        //현재디렉터리 사이즈 변경
+        presenti_data-> size -= (8 + sizeof(int));
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
+        fwrite(presenti_data, sizeof(INODE), 1 ,myfs);
     }
     else
     {
@@ -335,6 +379,8 @@ void myrmdir(char *givenname)
 
     free(presenti_data);
     free(i_data);
+    free(fileinode);
+    free(filename);
     fclose(myfs);
 
     return;
@@ -419,29 +465,27 @@ void mytouch(char *givenname)
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
     fread(i_data, sizeof(INODE), 1, myfs);
     
-    char *filename;
-    int *inodenumber, inodenumber2; 
-    unsigned count = 0;
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data-> dir_1 - 1)), SEEK_SET);
-    while(1)
+    char *filename = (char *)malloc(sizeof(char));
+    int *inodenumber = (int *)malloc(sizeof(int));
+    int inodenumber2;
+    int n = i_data-> size / (8 + sizeof(int));
+    unsigned count = -1;
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data-> dir_1)), SEEK_SET);
+    for(int i=0; i<n; i++)
     {
-        fread(filename, sizeof(8), 1, myfs);
+        fread(filename, 8, 1, myfs);
         fread(inodenumber, sizeof(int), 1, myfs);
         inodenumber2 = *inodenumber;
-        if(filename == NULL)
-        {
-            count = -1;
-            break;
-        }
         if(strcmp(givenname, filename) == 0)
         {
+            count = i;
             break;
         }
-        count++;
     }
     if(count == -1)
     {
         //파일생성
+        //슈퍼블록수정
         SUPERBLOCK *sb_data = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK)); 
         fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
         fread(sb_data, sizeof(SUPERBLOCK), 1, myfs);
@@ -467,6 +511,7 @@ void mytouch(char *givenname)
         fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
         fwrite(sb_data, sizeof(SUPERBLOCK), 1, myfs);
 
+        //아이노드 생성
         INODE *i_data3 = (INODE *)malloc(sizeof(INODE));
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (20 * (saveinumber - 1)), SEEK_SET);
         fread(i_data3, sizeof(INODE), 1, myfs);
@@ -495,6 +540,19 @@ void mytouch(char *givenname)
         free(sb_data);
         free(i_data3);
 
+        //현재디렉터리 데이터블록추가
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data-> dir_1)) + i_data-> size, SEEK_SET);
+        fwrite(givenname, 8, 1, myfs);
+        fwrite(&saveinumber, sizeof(int), 1, myfs);
+        char *minusone = (char *)malloc(sizeof(char));
+        *minusone = -1;
+        fwrite(minusone, sizeof(char), 1, myfs);
+        free(minusone);
+
+        //현재 디렉토리 inode 수정(size 멤버)
+        i_data->size += (8 + sizeof(int));
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
+        fwrite(i_data, sizeof(INODE), 1, myfs);
     }
     else
     {
@@ -517,6 +575,8 @@ void mytouch(char *givenname)
     }
 
     free(i_data);
+    free(filename);
+    free(inodenumber);
     fclose(myfs);
 
     return;
