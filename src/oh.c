@@ -12,9 +12,8 @@ void mycd (char* path)
 {
     if(path == NULL)
     {//path 인자가 없을시
-        rear_dir_list_ptr == front_dir_list_ptr;//작업 디렉터리를 홈디렉터리로 설정
+        rear_dir_list_ptr = front_dir_list_ptr;//작업 디렉터리를 홈디렉터리로 설정
     }
-
     else if (path != NULL)
     {
         int first = 0;//첫 / 잘라내기
@@ -22,35 +21,37 @@ void mycd (char* path)
         char *nm_ptr = strtok(path, "/");
         while (nm_ptr != NULL)//이름이 NULL값이 아니라면
         {
-         if (first == 0)//시작디렉토리가 . , .. , /셋 중 하나  . 와 ..에서 시작할때의 경우 판단
-         {
-          if (nm_ptr == ".") //.에서 시작
-          {
-          tmp_ptr = rear_dir_list_ptr;
-          nm_ptr = strtok(NULL, "/");
-          first++;
-          }
-          else if (nm_ptr == "..")//..에서 시작
-          {
-           int i = 0;
-           tmp_ptr = front_dir_list_ptr;
-           while (i < cntfound()-1){
-               tmp_ptr = tmp_ptr -> next_ptr;
-           } // tmp_ptr이 현재 디렉터리 리스트에서 (마지막-1)번째 디렉토리를 가리키도록 함.
-           tmp_ptr = rear_dir_list_ptr;
-           nm_ptr = strtok(NULL, "/");
-           first++;
-          }
-         }
-         else if (first != 0)
-         {
-          DIR_LIST* new_dir = malloc(sizeof(DIR_LIST)); 
-          new_dir-> name = nm_ptr;
-          char* s = strcat("/",nm_ptr);//s = /'다음 디렉토리'
-          new_dir-> inode = path_to_inode(strcat(prtpwd(),s));
-          tmp_ptr -> next_ptr = new_dir;
-          nm_ptr = strtok(NULL, "/");
-         }
+            if (first == 0)//시작디렉토리가 . , .. , /셋 중 하나  . 와 ..에서 시작할때의 경우 판단
+            {
+                if (nm_ptr == ".") //.에서 시작
+                {
+                    tmp_ptr = rear_dir_list_ptr;
+                    nm_ptr = strtok(NULL, "/");
+                    first++;
+                }
+                else if (nm_ptr == "..")//..에서 시작
+                {
+                    int i = 0;
+                    tmp_ptr = front_dir_list_ptr;
+                    while (i < cntfound()-1)
+                    {
+                        tmp_ptr = tmp_ptr -> next_ptr;
+                    } // tmp_ptr이 현재 디렉터리 리스트에서 (마지막-1)번째 디렉토리를 가리키도록 함.
+                    
+                    tmp_ptr = rear_dir_list_ptr;
+                    nm_ptr = strtok(NULL, "/");
+                    first++;
+                }
+            }
+            else if (first != 0)
+            {
+                DIR_LIST* new_dir = malloc(sizeof(DIR_LIST)); 
+                new_dir-> name = nm_ptr;
+                char* s = strcat("/",nm_ptr);//s = /'다음 디렉토리'
+                new_dir-> inode = path_to_inode(strcat(prtpwd(),s));
+                tmp_ptr -> next_ptr = new_dir;
+                nm_ptr = strtok(NULL, "/");
+            }
         }
     }
 }
