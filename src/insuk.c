@@ -126,12 +126,40 @@ void mymkdir(char *dir_name)
 {
     if(dir_name == NULL)
     {
-        printf("인자가 필요합니다.\n");
+        printf("디렉터리명이 필요합니다.\n");
+        return;
+    }
+
+    if(strlen(dir_name) > 7)
+    {
+        printf("디렉터리명이 너무 깁니다.\n");
         return;
     }
 
     FILE *myfs;
     myfs = fopen("myfs", "rb+");
+
+    //동일한 파일명을 위한 예외처리
+    int presentinode = rear_dir_list_ptr-> inode;
+    INODE *inode_data = (INODE *)malloc(sizeof(INODE));
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20 * (presentinode-1), SEEK_SET);
+    fread(inode_data, sizeof(INODE), 1, myfs);
+    char *filename = (char *)malloc(sizeof(char));
+    int *inodenumber = (int *)malloc(sizeof(int));
+    int n = inode_data-> size / (8 + sizeof(int));
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (inode_data-> dir_1)), SEEK_SET);
+    for(int i=0; i<n; i++)
+    {
+        fread(filename, 8, 1, myfs);
+        fread(inodenumber, sizeof(int), 1, myfs);
+        if(strcmp(dir_name, filename) == 0)
+        {
+            printf("이미 존재하는 파일입니다.\n");
+            return;
+        }
+    }
+    free(inode_data);
+
     SUPERBLOCK *sb_data = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK));
     fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
     fread(sb_data, sizeof(SUPERBLOCK), 1, myfs);
@@ -429,9 +457,9 @@ void mystate(void)
     printf("\n");
 
     printf("Data block state :\n");
-    printf("Total : 128\n");
-    printf("used : %d\n", (savedbnumber - 1));
-    printf("Available : %d\n", (129 - savedbnumber));
+    printf("Total : 256 blocks / 65536 byte\n");
+    printf("used : %d blocks / %d byte\n", (savedbnumber - 1), ((savedbnumber - 1) * 256));
+    printf("Available : %d blocks / %d byte\n", (129 - savedbnumber), ((129 - savedbnumber) * 256));
     printf("Data block map :\n");
     bit_print(sb_data-> data_block_1);
     bit_print(sb_data-> data_block_2);
@@ -457,6 +485,18 @@ void mystate(void)
 */
 void mytouch(char *givenname)
 {
+    if(givenname == NULL)
+    {
+        printf("파일명이 필요합니다.\n");
+        return;
+    }
+
+    if(strlen(givenname) > 7)
+    {
+        printf("파일명이 너무 깁니다.\n");
+        return;
+    }
+
     int saveinode;
     saveinode = rear_dir_list_ptr-> inode;
     FILE *myfs;
