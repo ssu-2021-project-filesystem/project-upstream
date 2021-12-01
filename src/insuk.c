@@ -309,17 +309,17 @@ void myrmdir(char *givenname)
         }
         else if(saveinumber>33 && saveinumber<=64)
         {
-            mask <<= (saveinumber - 33);
+            mask >>= (saveinumber - 33);
             sb_data-> inode_2 = sb_data-> inode_2 ^ mask;
         }
         else if(saveinumber>65 && saveinumber<=96)
         {
-            mask <<= (saveinumber - 65);
+            mask >>= (saveinumber - 65);
             sb_data-> inode_3 = sb_data-> inode_3 ^ mask;
         }
         else if(saveinumber>97 && saveinumber<=128)
         {
-            mask <<= (saveinumber - 97);
+            mask >>= (saveinumber - 97);
             sb_data-> inode_4 = sb_data-> inode_4 ^ mask;
         }
         unsigned mask1 = 1 << 31;
