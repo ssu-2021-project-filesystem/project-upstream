@@ -349,10 +349,10 @@ void mycp(const char* source_file, const char* dest_file  )
 
 /*
 이름    : myrm 함수
-작성자  : 오규빈
+작성자  : 양인석
 기능    : 파일을 삭제하는 명령어
 받는값  : 파일명
-리턴값  : 리턴값
+리턴값  : x
 */
 
 void myrm(const char* file)
