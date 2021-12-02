@@ -157,7 +157,7 @@ void mycpfrom (char* source_file, char* dest_file )
 {
     FILE *ifp;
     FILE *myfs;
-    int c,size_F;
+    int c,size_F = 0;
     time_t Time;
     struct tm* TimeInfo;
 
@@ -218,7 +218,6 @@ void mycpfrom (char* source_file, char* dest_file )
         {
             printf("해당 파일은 일반 파일이 아닙니다.\n");
 
-            free(fileinode);
             free(presenti_data);
             free(filename);
 
@@ -226,16 +225,21 @@ void mycpfrom (char* source_file, char* dest_file )
         }
     }
 
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((file_inode_tmp_ptr -> dir_1) -1)),SEEK_SET);//새로운 파일에 복사
+    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((file_inode_tmp_ptr -> dir_1))),SEEK_SET);//새로운 파일에 복사
     while ((c = getc(ifp)) != EOF)
     {
       size_F++;
       putc(c,myfs);
     }
+    char *minusone = (char *)malloc(sizeof(char));
+    *minusone = -1;
+    fwrite(minusone, sizeof(char), 1, myfs);
+
     file_inode_tmp_ptr -> size = size_F;
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (*fileinode - 1), SEEK_SET);
     fwrite(file_inode_tmp_ptr,sizeof(INODE),1,myfs);
 
-
+    free(fileinode);
     free(file_inode_tmp_ptr);
     fclose(ifp);
     fclose(myfs);

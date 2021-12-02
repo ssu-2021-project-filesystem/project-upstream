@@ -112,8 +112,8 @@ void mytouch(char *givenname);
 
 //jin
 void myls(const char *ptr);
-void mycat(char *file);
-void myshowfile(char *num1, char *num2, char *file);
+void mycat(char *givename);
+void myshowfile(char *startbyte, char *endbyte, char *givenname);
 
 //oh
 void mycd (char* path);
