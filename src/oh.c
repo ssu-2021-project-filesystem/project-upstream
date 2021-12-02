@@ -78,6 +78,7 @@ void mycpto (const char* source_file, const char* dest_file  )
     FILE *ofp;
     FILE *myfs;
     int c,d;
+    int test = 0;
     int i = 0;
     int inode = 1;
     int tmp_datablock;
@@ -99,9 +100,9 @@ void mycpto (const char* source_file, const char* dest_file  )
     fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+ INODE_LIST_SIZE +  (256 * (tmp_datablock - 1)),SEEK_SET);//현재 디렉토리의 데이터블록 앞으로 포인터 이동
     fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs); // 포인터로 파일명 확인
 
-    while(!strcmp(tmp_file_string_ptr, source_file))
+    while(strcmp(tmp_file_string_ptr, source_file))
     {//찾는 파일과 확인한 파일의 이름이 같지 않다면
-        if((c = getchar()) != EOF)
+        if((c = getc(myfs)) != EOF)
         {//myfs파일의 끝을 확인
             fseek(myfs, -1, SEEK_CUR);
             fseek(myfs,sizeof(int),SEEK_CUR);//현재 포인터 위치로부터 int형 크기만큼 이동
@@ -348,7 +349,7 @@ void myrm(const char* file)
         else
         {
         fprintf(stderr,"오류 : %s 파일이 없습니다.\n", file); //파일명을 현재 디렉토리에서 못찾으면 오류 띄우기
-        exit(1);
+        return;
         }
     }
     fread(tmp_inode_ptr, sizeof(int), 1, myfs);
