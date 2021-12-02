@@ -102,13 +102,11 @@ void mycpto (const char* source_file, const char* dest_file  )
 
     while(strcmp(tmp_file_string_ptr, source_file))
     {//찾는 파일과 확인한 파일의 이름이 같지 않다면
-    printf("0");
         if((c = getc(myfs)) != EOF)
         {//myfs파일의 끝을 확인
             fseek(myfs, -1, SEEK_CUR);
             fseek(myfs,sizeof(int),SEEK_CUR);//현재 포인터 위치로부터 int형 크기만큼 이동
             fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs);
-            continue;
         }
         else
         {
