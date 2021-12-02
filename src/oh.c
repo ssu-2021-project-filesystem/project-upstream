@@ -296,56 +296,7 @@ void mycp(const char* source_file, const char* dest_file  )
 리턴값  : 리턴값
 */
 
-void myrm(const char* file)
-{
-    FILE *myfs;
-    int c,i=0;
-    int inode = 1;
 
-    char *tmp_file_string_ptr = (char *)malloc(sizeof(char) * 8); //디렉토리의 datablock에서 추출한 파일명을 가리킬 포인터
-    int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //디렉토리의 datablock에서 추출한 inode 번호를 가리킬 포인터
-    INODE *inode_ptr = (INODE *)malloc(sizeof(INODE));// inode 포인터
-
-    myfs = fopen("myfs", "rb");
-    if (myfs == NULL)
-    {
-        printf("myrm() 함수 : 파일 열기에 실패했습니다.\n");
-        abort();
-    }
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((path_to_inode(prtpwd()))-1)),SEEK_SET);//현재 디렉토리의 데이터블록 앞으로 포인터 이동
-    fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs); // 포인터로 파일명 확인
-
-    while(!strcmp(tmp_file_string_ptr, file))
-    {//찾는 파일과 확인한 파일의 이름이 같지 않다면
-        if((c = getchar()) != EOF)
-        {//myfs파일의 끝 확인
-            fseek(myfs, -1, SEEK_CUR);
-            fseek(myfs,sizeof(int),SEEK_CUR);//현재 포인터 위치로부터 int형 크기만큼 이동
-            fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs);
-        }
-        else
-        {
-        fprintf(stderr,"오류 : %s 파일이 없습니다.\n", file); //파일명을 현재 디렉토리에서 못찾으면 오류 띄우기
-        exit(1);
-        }
-    }
-    fread(tmp_inode_ptr, sizeof(int), 1, myfs);
-    inode =*tmp_inode_ptr;
-    fclose(myfs);
-
-    myfs = fopen("myfs", "wb");
-    rewind(myfs);
-    fseek(myfs, BOOT_BLOCK_SIZE + (inode- 1) ,SEEK_SET);//INODELIST 
-    putchar(0);
-    fseek(myfs, BOOT_BLOCK_SIZE + 128 + ((inode_ptr -> dir_1) - 1),SEEK_SET);//DATABLOCK
-    putchar(0);
-    fseek(myfs, BOOT_BLOCK_SIZE + (sizeof(INODE)*128)+(DATA_BLOCK_SIZE)*((inode_ptr -> dir_1) - 1) ,SEEK_SET);
-    while(i != DATA_BLOCK_SIZE)
-    {
-        putchar(0);
-        i++;
-    }
-}
 
 /*
 이름    : cntfound 함수
