@@ -8,7 +8,7 @@
 받는값  : 파일 명
 리턴값  : X
 */
-void myls(const char* file )
+void myls(const char* filename)
 {
     // 파일 열기
     FILE *myfs;
@@ -82,19 +82,26 @@ void myls(const char* file )
     fread(file_d, sizeof(INODE), 1, myfs);
     int data_num = (int)(file_d->dir_1 + 1);
 
-    while(c = getchar() != EOF)
+
+    // datablock에서 각각의 파일 찾아내고 그 다음 모든 파일의 inode로 세부사항 접근
+
+    n = file_d->size / (8 + sizeof(int));
+
+
+    for(int i = count; i < n; i++)
     {
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (data_num)) + (8 + sizeof(int)) * (i + 1), SEEK_SET);
+        int i = 0;
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + ((DATA_BLOCK_SIZE * (data_num)) + i), SEEK_SET);
         fread(filename, 8, 1, myfs);
         fread(fileinode, sizeof(int), 1, myfs);
 
         // 파일명
-        printf("%d" filename);
+        printf("%s" ,filename);
 
         // inode list 정보 읽기
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (fileinode - 1)), SEEK_SET);
-        INODE *file_inode_tmp_ptr = (INODE *)malloc(sizeof(INODE));
-        fread(inode_data_ptr, sizeof(INODE), 1, myfs);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (*fileinode - 1)), SEEK_SET);
+        INODE *inode_ptr = (INODE *)malloc(sizeof(INODE));
+        fread(inode_ptr, sizeof(INODE), 1, myfs);
 
         // 생성일자
         printf("    생성일자 : ");
@@ -124,7 +131,7 @@ void myls(const char* file )
         }
 
         // inode 번호
-        printf("    inode번호 : %d", inode_num);
+        printf("    inode번호 : %d", inode_ptr);
 
 
         // 크기
@@ -132,191 +139,12 @@ void myls(const char* file )
 
         fseek(myfs, -1, SEEK_CUR);
         fseek(myfs,sizeof(int),SEEK_CUR);
+
+        i++;
     }
 
 
-    free(inode_ptr);
     fclose(myfs);
 
-    return;
-}
-
-
-
-
-/*
-이름    : mycat 함수
-작성자  : 이우진
-기능    : 파일 내용 출력 명령어
-받는값  : X
-리턴값  : X
-*/
-void mycat(char *file)
-{
-    FILE *myfs;
-    myfs = fopen("myfs", "rb");
-
-    INODE *inode_data = (INODE *)malloc(sizeof(INODE));
-    int num = rear_dir_list_ptr->inode; //현재 디렉토리의 inode 번호를 저장할 변수
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (num - 1), SEEK_SET);
-    fread(inode_data, sizeof(INODE), 1, myfs);
-    int file_num = (inode_data->size / (8 + sizeof(int)));
-        
-
-    // 파일 찾기
-    int dir_inode = 0;
-
-    INODE *f_inode = (INODE *)malloc(sizeof(INODE)); //현재 디렉토리 내부 파일의 inode 정보를 저장할 변수
-    char *fn = (char *)malloc(sizeof(char) * 8);  // filename
-    int *in = (int *)malloc(sizeof(int));// inodenumber
-
-    for(int i = 0; i < file_num; i++) 
-    {
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * inode_data->dir_1) + (i * (8 + sizeof(int))), SEEK_SET);
-        fread(fn, 8, 1, myfs); 
-        fread(in, sizeof(int), 1, myfs); 
-
-        if(strcmp(file, fn) == 0)
-        {
-            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (*in - 1)), SEEK_SET);
-            fread(f_inode, sizeof(INODE), 1, myfs);
-
-            if(f_inode->type == 0) //디렉토리인 경우
-            {
-                printf("%s 은/는 디렉토리입니다.\n", file);
-
-                free(inode_data);
-                free(fn);
-                free(in);
-                free(f_inode);
-
-                return;
-            }
-            else //일반 파일인 경우
-            {
-                int number = *in;
-                if(number == 0)
-                {
-                    printf("%s 이/가 존재하지 않습니다.\n", file);
-
-                    return;
-                }
-
-                else // 출력
-                {
-                    char *test;
-                    fread(test,sizeof(file),1,myfs);
-                    printf("%s", test);
-                }
-
-
-                break
-
-
-
-        while((c = getchar()) != EOF){
-    
-            fseek(myfs, -1, SEEK_CUR);
-            fseek(myfs,sizeof(int),SEEK_CUR);//현재 포인터 위치로부터 int형 크기만큼 이동
-            fread(tmp_file_name_ptr, sizeof(char) * 8, 1, myfs);
-        }
-
-    }
-
-
-
-    free(inode_data);
-    free(fn);
-    free(in);
-    free(f_inode);
-
-    fclose(myfs);
-    
-    return;
-}
-
-
-/*
-이름    : myshowfile 함수
-작성자  : 이우진
-기능    : 파일 지정된 부분 출력 명령어
-받는값  : X
-리턴값  : X
-*/
-void myshowfile(char *num1, char *num2, char *file)
-{
-    FILE *myfs;
-    myfs = fopen("myfs", "rb");
-
-    INODE *inode_data = (INODE *)malloc(sizeof(INODE));
-
-    int num = rear_dir_list_ptr->inode; //현재 디렉토리의 inode 번호를 저장할 변수
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (num - 1), SEEK_SET);
-    fread(inode_data, sizeof(INODE), 1, myfs);
-    int file_num = (inode_data->size / (8 + sizeof(int)));
-        
-
-    // 파일 찾기
-    int dir_inode = 0;
-
-    INODE *f_inode = (INODE *)malloc(sizeof(INODE)); //현재 디렉토리 내부 파일의 inode 정보를 저장할 변수
-    char *fn = (char *)malloc(sizeof(char) * 8);  // filename
-    int *in = (int *)malloc(sizeof(int));// inodenumber
-
-    for(int i = 0; i < file_num; i++) 
-    {
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * inode_data->dir_1) + (i * (8 + sizeof(int))), SEEK_SET);
-        fread(fn, 8, 1, myfs); 
-        fread(in, sizeof(int), 1, myfs); 
-
-        if(strcmp(file, fn) == 0)
-        {
-            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (*in - 1)), SEEK_SET);
-            fread(f_inode, sizeof(INODE), 1, myfs);
-
-            if(f_inode->type == 0) //디렉토리인 경우
-            {
-                printf("%s 은/는 디렉토리입니다.\n", file);
-
-                free(inode_data);
-                free(fn);
-                free(in);
-                free(f_inode);
-
-                return;
-            }
-            else //일반 파일인 경우
-            {
-                int number = *in;
-
-                if(number == 0) 
-                {
-                    printf("%s 가 존재하지 않습니다.\n", file);
-
-                    return;
-                }
-
-                else //부분 출력
-                {
-                    int first_num = atoi(num1);
-                    int end_num = atoi(num2);
-
-                    fseek(myfs,  first_num - 1, SEEK_CUR);
-                    char *test;
-
-                    fread(test, (end_num - first_num), 1, myfs);
-                    printf("%s", test);
-                }
-                break;
-            }
-        }
-    }
-
-    free(inode_data);
-    free(fn);
-    free(in);
-    free(f_inode);
-    fclose(myfs);
-    
     return;
 }
