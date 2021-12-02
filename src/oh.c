@@ -8,7 +8,7 @@
 받는값  : 경로 문자열
 리턴값  : X
 */
-void mycd (char* path)
+void mycd (char path[])
 {
     if(path == NULL)
     {//path 인자가 없을시
@@ -19,6 +19,7 @@ void mycd (char* path)
         int first = 0;//첫 / 잘라내기
         DIR_LIST *tmp_ptr;
         char *nm_ptr = strtok(path, "/");
+        printf("%s",nm_ptr);
         while (nm_ptr != NULL)//이름이 NULL값이 아니라면
         {
             if (first == 0)//시작디렉토리가 . , .. , /셋 중 하나  . 와 ..에서 시작할때의 경우 판단
@@ -26,8 +27,10 @@ void mycd (char* path)
                 if (nm_ptr == ".") //.에서 시작
                 {
                     tmp_ptr = rear_dir_list_ptr;
+                    printf("%s\n", nm_ptr);
                     nm_ptr = strtok(NULL, "/");
                     first++;
+                    continue;
                 }
                 else if (nm_ptr == "..")//..에서 시작
                 {
@@ -41,12 +44,18 @@ void mycd (char* path)
                     tmp_ptr = rear_dir_list_ptr;
                     nm_ptr = strtok(NULL, "/");
                     first++;
+                    continue;
+                }
+                else
+                {
+                    ;
                 }
             }
             else if (first != 0)
             {
                 DIR_LIST* new_dir = malloc(sizeof(DIR_LIST)); 
                 new_dir-> name = nm_ptr;
+                printf("%s",nm_ptr);
                 char* s = strcat("/",nm_ptr);//s = /'다음 디렉토리'
                 new_dir-> inode = path_to_inode(strcat(prtpwd(),s));
                 tmp_ptr -> next_ptr = new_dir;
@@ -54,6 +63,7 @@ void mycd (char* path)
             }
         }
     }
+    return;
 }
 
 /*
@@ -70,47 +80,60 @@ void mycpto (const char* source_file, const char* dest_file  )
     int c,d;
     int i = 0;
     int inode = 1;
+    int tmp_datablock;
 
+    if(source_file ==NULL || dest_file == NULL)
+    {
+        printf("오류 : 인자가 부족합니다");
+        return;
+    }
     char *tmp_file_string_ptr = (char *)malloc(sizeof(char) * 8); //디렉토리의 datablock에서 추출한 파일명을 가리킬 포인터
     int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //디렉토리의 datablock에서 추출한 inode 번호를 가리킬 포인터
     INODE *inode_ptr = (INODE *)malloc(sizeof(INODE));// inode 포인터
 
     myfs = fopen("myfs", "rb");
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*(path_to_inode(prtpwd())-1)),SEEK_SET);//현재 디렉토리의 데이터블록 앞으로 포인터 이동
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (rear_dir_list_ptr -> inode - 1)), SEEK_SET);
     fread(inode_ptr, sizeof(INODE), 1, myfs);
-    int tmp_datablock = (int)(inode_ptr->dir_1 + 1);
+
+    tmp_datablock = (int)(inode_ptr->dir_1 + 1);
+    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+ INODE_LIST_SIZE +  (256 * (tmp_datablock - 1)),SEEK_SET);//현재 디렉토리의 데이터블록 앞으로 포인터 이동
     fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs); // 포인터로 파일명 확인
 
     while(!strcmp(tmp_file_string_ptr, source_file))
     {//찾는 파일과 확인한 파일의 이름이 같지 않다면
         if((c = getchar()) != EOF)
-        {//myfs파일의 끝 확인
+        {//myfs파일의 끝을 확인
             fseek(myfs, -1, SEEK_CUR);
             fseek(myfs,sizeof(int),SEEK_CUR);//현재 포인터 위치로부터 int형 크기만큼 이동
             fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs);
         }
         else
         {
-        fprintf(stderr,"오류 : %s 파일이 없습니다.\n", source_file); //파일명을 현재 디렉토리에서 못찾으면 오류 띄우기
-        exit(1);
+        printf("오류 : %s 파일이 없습니다.\n", source_file); //파일명을 현재 디렉토리에서 못찾으면 오류 띄우기
+        return;
         }
     }
+
     fread(tmp_inode_ptr, sizeof(int), 1, myfs);
     inode =*tmp_inode_ptr;
 
     if ((ofp = fopen(dest_file, "wb")) == NULL)
     {
-        fprintf(stderr, "오류 : %s 파일을 열 수 없습니다. \n", source_file);
-        exit(1);
+        printf("오류 : %s 파일을 열 수 없습니다. \n", dest_file);
+        return;
     }
 
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((inode_ptr->dir_1)- 1)),SEEK_SET);//새로운 파일에 복사
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (inode - 1)), SEEK_SET);
+    fread(inode_ptr, sizeof(INODE), 1, myfs);
+
+    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+INODE_LIST_SIZE +(DATA_BLOCK_SIZE*((inode_ptr->dir_1)- 1)),SEEK_SET);//새로운 파일에 복사
     while(i != DATA_BLOCK_SIZE)
     {
-        d = getchar();
+        d = getc(myfs);
         putc(d,ofp);
         i++;
     }
+    
     free(tmp_file_string_ptr);
     free(tmp_inode_ptr);
     free(inode_ptr);
@@ -139,7 +162,7 @@ void mycpfrom (const char* source_file, const char* dest_file )
     Time = time(NULL);                // 현재 시간을 받음
     TimeInfo = localtime(&Time); 
 
-    myfs = fopen("myfs", "wb");
+    myfs = fopen("myfs", "rb+");
     char *tmp_dir_string_ptr = (char *)malloc(sizeof(char) * 8); //디렉토리의 datablock에서 추출한 디렉토리명을 가리킬 포인터
     int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //디렉토리의 datablock에서 추출한 inode 번호를 가리킬 포인터
     INODE *inode_data_ptr = (INODE *)malloc(sizeof(INODE));
@@ -210,7 +233,7 @@ void mycp(const char* source_file, const char* dest_file  )
     INODE *inode_data_ptr = (INODE *)malloc(sizeof(INODE));// inode 포인터
     char *tmp_data_string; //디렉토리의 datablock에서 추출한 데이터를 가리킬 포인터
 
-    myfs = fopen("myfs", "rb");
+    myfs = fopen("myfs", "rb+");
     fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*(path_to_inode(prtpwd())-1)),SEEK_SET);//현재 디렉토리의 데이터블록 앞으로 포인터 이동
     fread(inode_data_ptr, sizeof(INODE), 1, myfs);
     int tmp_datablock = (int)(inode_data_ptr->dir_1 + 1);
@@ -247,7 +270,6 @@ void mycp(const char* source_file, const char* dest_file  )
     int new_inode = acc_inode();
     int new_data = acc_data();
     
-    myfs = fopen("myfs","wb");
     rewind(myfs);
     fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*(new_data-1)),SEEK_SET);//새로운 파일에 복사
     int k = 0;
@@ -306,7 +328,7 @@ void myrm(const char* file)
     int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //디렉토리의 datablock에서 추출한 inode 번호를 가리킬 포인터
     INODE *inode_ptr = (INODE *)malloc(sizeof(INODE));// inode 포인터
 
-    myfs = fopen("myfs", "rb");
+    myfs = fopen("myfs", "rb+");
     if (myfs == NULL)
     {
         printf("myrm() 함수 : 파일 열기에 실패했습니다.\n");
@@ -333,7 +355,6 @@ void myrm(const char* file)
     inode =*tmp_inode_ptr;
     fclose(myfs);
 
-    myfs = fopen("myfs", "wb");
     rewind(myfs);
     fseek(myfs, BOOT_BLOCK_SIZE + (inode- 1) ,SEEK_SET);//INODELIST 
     putchar(0);
@@ -362,8 +383,9 @@ int cntfound()
     while ((tmp_dir->next_ptr) != NULL)
     {
         {
-            cnt++;
             tmp_dir = tmp_dir->next_ptr;
+            cnt++;
+            printf("fff\n");
         }
     }
     return cnt;//탐색 실패시
