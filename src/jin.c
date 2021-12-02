@@ -169,90 +169,87 @@ void myls(const char *ptr)
     return;
 }
 
-
-
-
 /*
 이름    : mycat 함수
-작성자  : 이우진
+작성자  : 양인석
 기능    : 파일 내용 출력 명령어
-받는값  : X
+받는값  : 파일이름
 리턴값  : X
 */
-void mycat(char *file)
+void mycat(char *givenname)
 {
-    FILE *myfs;
-    myfs = fopen("myfs", "rb");
-
-    INODE *inode_data = (INODE *)malloc(sizeof(INODE));
-    int num = rear_dir_list_ptr->inode; //현재 디렉토리의 inode 번호를 저장할 변수
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (num - 1), SEEK_SET);
-    fread(inode_data, sizeof(INODE), 1, myfs);
-    int file_num = (inode_data->size / (8 + sizeof(int)));
-        
-
-    // 파일 찾기
-    int dir_inode = 0;
-
-    INODE *f_inode = (INODE *)malloc(sizeof(INODE)); //현재 디렉토리 내부 파일의 inode 정보를 저장할 변수
-    char *fn = (char *)malloc(sizeof(char) * 8);  // filename
-    int *in = (int *)malloc(sizeof(int));// inodenumber
-
-    for(int i = 0; i < file_num; i++) 
+    //예외처리
+    if (givenname == NULL)
     {
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * inode_data->dir_1) + (i * (8 + sizeof(int))), SEEK_SET);
-        fread(fn, 8, 1, myfs); 
-        fread(in, sizeof(int), 1, myfs); 
-
-        if(strcmp(file, fn) == 0)
-        {
-            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (*in - 1)), SEEK_SET);
-            fread(f_inode, sizeof(INODE), 1, myfs);
-
-            if(f_inode->type == 0) //디렉토리인 경우
-            {
-                printf("%s 은/는 디렉토리입니다.\n", file);
-
-                free(inode_data);
-                free(fn);
-                free(in);
-                free(f_inode);
-
-                return;
-            }
-            else //일반 파일인 경우
-            {
-                int number = *in;
-                if(number == 0)
-                {
-                    printf("%s 이/가 존재하지 않습니다.\n", file);
-
-                    return;
-                }
-
-                else // 출력
-                {
-                    char *test;
-                    fread(test,sizeof(file),1,myfs);
-                    printf("%s", test);
-                }
-
-
-                break;   
-            }
-        }
+        printf("파일명이 필요합니다.\n");
+        return;
     }
 
-    free(inode_data);
-    free(fn);
-    free(in);
-    free(f_inode);
+    if (strlen(givenname) > 7)
+    {
+        printf("문자열이 너무 깁니다. (최대 7글자)\n");
 
-    fclose(myfs);
+        return;
+    }
+
+    FILE *myfs;
+    myfs = fopen("myfs", "rb+");
     
+    //현재 디렉터리 아이노드 받기
+    int saveinode = rear_dir_list_ptr->inode; //현재 디렉토리의 inode 번호 저장
+    //현재 디렉토리의 inode 정보 불러오기
+    INODE *presenti_data = (INODE *)malloc(sizeof(INODE));
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20 * (saveinode - 1), SEEK_SET);
+    fread(presenti_data, sizeof(INODE), 1, myfs);
+    
+    //파일명이 같은 파일이 있는지 검사
+    char *filename = (char *)malloc(sizeof(char) * 8);
+    int *inodenumber = (int *)malloc(sizeof(int));
+    int saveinumber;
+    unsigned count = 0;
+
+    int dir_file_num = presenti_data->size / (8 + sizeof(int));
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * presenti_data->dir_1), SEEK_SET);
+    for (int i = 0; i < dir_file_num; i++)
+    {
+        fread(filename, 8, 1, myfs);
+        fread(inodenumber, sizeof(int), 1, myfs);
+
+        if (strcmp(givenname, filename) == 0)
+        {
+            saveinumber = *inodenumber;
+            break;
+        }
+        else
+        {
+            count++;
+        }
+    }
+    //읽을 파일의 아이노드 받기
+    INODE *i_data = (INODE *)malloc(sizeof(INODE));
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20 * (saveinumber - 1), SEEK_SET);
+    fread(i_data, sizeof(INODE), 1, myfs);
+
+    //이진파일내용 읽어서 출력
+    char *datablock_ptr = (char *)malloc(sizeof(char));
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data-> dir_1 - 1)), SEEK_SET);
+
+    for(int i = 0; i < i_data-> size; i++)
+    {
+        fread(datablock_ptr, sizeof(char), 1, myfs);
+
+        if(*datablock_ptr == -1)
+        {
+            break;
+        }
+        else
+        {
+            printf("%c", *datablock_ptr);
+        }
+    }
     return;
 }
-
 
 /*
 이름    : myshowfile 함수
