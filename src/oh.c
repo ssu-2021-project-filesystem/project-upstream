@@ -134,6 +134,7 @@ void mycpto (const char* source_file, const char* dest_file  )
         putc(d,ofp);
         i++;
     }
+    putc(EOF,ofp);
     
     free(tmp_file_string_ptr);
     free(tmp_inode_ptr);
@@ -152,55 +153,90 @@ void mycpto (const char* source_file, const char* dest_file  )
 리턴값  : 리턴값
 */
 
-void mycpfrom (const char* source_file, const char* dest_file )
+void mycpfrom (char* source_file, char* dest_file )
 {
     FILE *ifp;
     FILE *myfs;
     int c,size_F;
     time_t Time;
     struct tm* TimeInfo;
- 
-    Time = time(NULL);                // 현재 시간을 받음
-    TimeInfo = localtime(&Time); 
 
+    if(source_file ==NULL || dest_file == NULL)
+    {
+        printf("오류 : 인자가 부족합니다");
+        return;
+    }
+    if ((ifp = fopen(source_file, "rb")) == NULL)
+    {
+        printf("오류 : %s 파일을 열 수 없습니다. \n", source_file);
+        return;
+    }
     myfs = fopen("myfs", "rb+");
-    char *tmp_dir_string_ptr = (char *)malloc(sizeof(char) * 8); //디렉토리의 datablock에서 추출한 디렉토리명을 가리킬 포인터
-    int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //디렉토리의 datablock에서 추출한 inode 번호를 가리킬 포인터
-    INODE *inode_data_ptr = (INODE *)malloc(sizeof(INODE));
+    mytouch(dest_file); // dest_file의 이름을 가지는 파일 생성
+
+    //현재 디렉터리의 아이노드 받기
+    int presentinode = rear_dir_list_ptr-> inode; //현재 디렉터리의 아이노드번호
+    INODE *presenti_data = (INODE *)malloc(sizeof(INODE)); //현재 디렉터리의 아이노드 구조체
+    INODE *file_inode_tmp_ptr = (INODE *)malloc(sizeof(INODE));//받아올 파일의 아이노드 구조체
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(presentinode - 1), SEEK_SET);
+    fread(presenti_data, sizeof(INODE), 1, myfs);
     
-    int new_inode = acc_inode();
-    int new_data = acc_data();
-    ifp = fopen(source_file,"rb");
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*(new_data-1)),SEEK_SET);//새로운 파일에 복사
+    //함수인자의 파일명과 데이터블록의 파일명 비교
+    int n = presenti_data-> size/12; //for문을 위한 변수지정
+    char *filename = (char *)malloc(sizeof(char) * 8); //파일명을 읽기위한 변수
+    int *fileinode = (int *)malloc(sizeof(int));
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data-> dir_1)), SEEK_SET);
+    unsigned count;
+    int none_tmp = 0;
+    for(int i=0; i<n; i++)
+    {
+        fread(filename, 8, 1, myfs);
+        fread(fileinode, sizeof(int), 1, myfs);
+        if(strcmp(dest_file, filename) == 0)
+        {
+            count = i;
+            break;
+        }
+        else
+        {
+            none_tmp++;
+        }
+    }
+
+    if (none_tmp == n) //해당 이름의 파일이 존재하지 않는 경우
+    {
+        printf("해당 이름의 파일이 존재하지 않습니다.\n");
+
+        return;
+    }
+    else //해당 이름의 파일이 존재하는 경우
+    {
+        //해당 파일이 일반 파일인지 검사
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (*fileinode - 1), SEEK_SET);
+        fread(file_inode_tmp_ptr, sizeof(INODE), 1, myfs);
+        if (file_inode_tmp_ptr->type == 0) //해당 파일이 디렉터리인 경우
+        {
+            printf("해당 파일은 일반 파일이 아닙니다.\n");
+
+            free(fileinode);
+            free(presenti_data);
+            free(filename);
+
+            return;
+        }
+    }
+
+    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((file_inode_tmp_ptr -> dir_1) -1)),SEEK_SET);//새로운 파일에 복사
     while ((c = getc(ifp)) != EOF)
     {
       size_F++;
-      putchar(c);
+      putc(c,myfs);
     }
+    file_inode_tmp_ptr -> size = size_F;
+    fwrite(file_inode_tmp_ptr,sizeof(INODE),1,myfs);
 
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (new_inode - 1)),SEEK_SET);//INODELIST 채우기
-    fread(inode_data_ptr, sizeof(INODE), 1, myfs);
-    inode_data_ptr -> type = 0;
-    inode_data_ptr -> year = TimeInfo ->tm_year+1900;
-    inode_data_ptr-> size = size_F;
-    inode_data_ptr -> month = TimeInfo ->tm_mon+1;
-    inode_data_ptr -> date = TimeInfo ->tm_mday;
-    inode_data_ptr -> hour = TimeInfo ->tm_hour;
-    inode_data_ptr -> minute = TimeInfo ->tm_min;
-    inode_data_ptr -> second = TimeInfo ->tm_sec;
-    inode_data_ptr -> dir_1 = new_data;    
-    inode_data_ptr -> dir_2 = 0;
-    inode_data_ptr -> dir_3 = 0;
-    inode_data_ptr -> dir_4 = 0;
-    inode_data_ptr -> dir_5 = 0;
-    inode_data_ptr -> dir_6 = 0;
-    inode_data_ptr -> dir_7 = 0;
-    inode_data_ptr -> dir_8 = 0;
-    inode_data_ptr -> indir = 0; 
-    fwrite(inode_data_ptr,sizeof(INODE),1,myfs);
 
-    
-
+    free(file_inode_tmp_ptr);
     fclose(ifp);
     fclose(myfs);
 
