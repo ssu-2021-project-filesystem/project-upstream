@@ -162,7 +162,12 @@ void mycpfrom (const char* source_file, const char* dest_file )
  
     Time = time(NULL);                // 현재 시간을 받음
     TimeInfo = localtime(&Time); 
-
+    
+    if(source_file ==NULL || dest_file == NULL)
+    {
+        printf("오류 : 인자가 부족합니다");
+        return;
+    }
     myfs = fopen("myfs", "rb+");
     char *tmp_dir_string_ptr = (char *)malloc(sizeof(char) * 8); //디렉토리의 datablock에서 추출한 디렉토리명을 가리킬 포인터
     int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //디렉토리의 datablock에서 추출한 inode 번호를 가리킬 포인터
@@ -170,37 +175,20 @@ void mycpfrom (const char* source_file, const char* dest_file )
     
     int new_inode = acc_inode();
     int new_data = acc_data();
+    mytouch(dest_file);
+
     ifp = fopen(source_file,"rb");
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*(new_data-1)),SEEK_SET);//새로운 파일에 복사
+    
     while ((c = getc(ifp)) != EOF)
     {
       size_F++;
-      putchar(c);
+      putc(c,myfs);
     }
+    putc(EOF,myfs);
 
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (new_inode - 1)),SEEK_SET);//INODELIST 채우기
-    fread(inode_data_ptr, sizeof(INODE), 1, myfs);
-    inode_data_ptr -> type = 0;
-    inode_data_ptr -> year = TimeInfo ->tm_year+1900;
-    inode_data_ptr-> size = size_F;
-    inode_data_ptr -> month = TimeInfo ->tm_mon+1;
-    inode_data_ptr -> date = TimeInfo ->tm_mday;
-    inode_data_ptr -> hour = TimeInfo ->tm_hour;
-    inode_data_ptr -> minute = TimeInfo ->tm_min;
-    inode_data_ptr -> second = TimeInfo ->tm_sec;
-    inode_data_ptr -> dir_1 = new_data;    
-    inode_data_ptr -> dir_2 = 0;
-    inode_data_ptr -> dir_3 = 0;
-    inode_data_ptr -> dir_4 = 0;
-    inode_data_ptr -> dir_5 = 0;
-    inode_data_ptr -> dir_6 = 0;
-    inode_data_ptr -> dir_7 = 0;
-    inode_data_ptr -> dir_8 = 0;
-    inode_data_ptr -> indir = 0; 
-    fwrite(inode_data_ptr,sizeof(INODE),1,myfs);
-
-    
-
+    free(tmp_dir_string_ptr);
+    free(tmp_inode_ptr);
+    free(inode_data_ptr);
     fclose(ifp);
     fclose(myfs);
 
