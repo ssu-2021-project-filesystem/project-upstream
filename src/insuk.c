@@ -1,10 +1,10 @@
 #include "user.h"
 /*
-ÀÌ¸§    : checkbit ÇÔ¼ö
-ÀÛ¼ºÀÚ  : ¾çÀÎ¼®
-±â´É    : ºñÆ®¿­°Ë»ç
-¹Ş´Â°ª  : int, unsigned
-¸®ÅÏ°ª  : int
+ì´ë¦„    : checkbit í•¨ìˆ˜
+ì‘ì„±ì  : ì–‘ì¸ì„
+ê¸°ëŠ¥    : ë¹„íŠ¸ì—´ê²€ì‚¬
+ë°›ëŠ”ê°’  : int, unsigned
+ë¦¬í„´ê°’  : int
 */
 int checkbit(int number, unsigned block)
 {
@@ -24,11 +24,11 @@ int checkbit(int number, unsigned block)
     return number;
 }
 /*
-ÀÌ¸§    : change_superblock ÇÔ¼ö
-ÀÛ¼ºÀÚ  : ¾çÀÎ¼®
-±â´É    : ½´ÆÛºí·Ï±¸Á¶Ã¼º¯°æ
-¹Ş´Â°ª  : int, int, SUPERBLOCK *
-¸®ÅÏ°ª  : x
+ì´ë¦„    : change_superblock í•¨ìˆ˜
+ì‘ì„±ì  : ì–‘ì¸ì„
+ê¸°ëŠ¥    : ìŠˆí¼ë¸”ë¡êµ¬ì¡°ì²´ë³€ê²½
+ë°›ëŠ”ê°’  : int, int, SUPERBLOCK *
+ë¦¬í„´ê°’  : x
 */
 void change_superblock(int saveinumber, int savedbnumber, SUPERBLOCK *sb_data)
 {
@@ -97,11 +97,11 @@ void change_superblock(int saveinumber, int savedbnumber, SUPERBLOCK *sb_data)
     }
 }
 /*
-ÀÌ¸§    : bit_print ÇÔ¼ö
-ÀÛ¼ºÀÚ  : ¾çÀÎ¼®
-±â´É    : ºñÆ®¿­Ãâ·Â
-¹Ş´Â°ª  : unsigned
-¸®ÅÏ°ª  : x
+ì´ë¦„    : bit_print í•¨ìˆ˜
+ì‘ì„±ì  : ì–‘ì¸ì„
+ê¸°ëŠ¥    : ë¹„íŠ¸ì—´ì¶œë ¥
+ë°›ëŠ”ê°’  : unsigned
+ë¦¬í„´ê°’  : x
 */
 void bit_print(unsigned a)
 {
@@ -116,22 +116,50 @@ void bit_print(unsigned a)
     return;
 }
 /*
-ÀÌ¸§    : mymkdir ÇÔ¼ö
-ÀÛ¼ºÀÚ  : ¾çÀÎ¼®
-±â´É    : µğ·ºÅÍ¸®»ı¼º
-¹Ş´Â°ª  : char
-¸®ÅÏ°ª  : x
+ì´ë¦„    : mymkdir í•¨ìˆ˜
+ì‘ì„±ì  : ì–‘ì¸ì„
+ê¸°ëŠ¥    : ë””ë ‰í„°ë¦¬ìƒì„±
+ë°›ëŠ”ê°’  : char
+ë¦¬í„´ê°’  : x
 */
 void mymkdir(char *dir_name)
 {
     if(dir_name == NULL)
     {
-        printf("ÀÎÀÚ°¡ ÇÊ¿äÇÕ´Ï´Ù.\n");
+        printf("ë””ë ‰í„°ë¦¬ëª…ì´ í•„ìš”í•©ë‹ˆë‹¤.\n");
+        return;
+    }
+
+    if(strlen(dir_name) > 7)
+    {
+        printf("ë””ë ‰í„°ë¦¬ëª…ì´ ë„ˆë¬´ ê¹ë‹ˆë‹¤.\n");
         return;
     }
 
     FILE *myfs;
     myfs = fopen("myfs", "rb+");
+
+    //ë™ì¼í•œ íŒŒì¼ëª…ì„ ìœ„í•œ ì˜ˆì™¸ì²˜ë¦¬
+    int presentinode = rear_dir_list_ptr-> inode;
+    INODE *inode_data = (INODE *)malloc(sizeof(INODE));
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20 * (presentinode-1), SEEK_SET);
+    fread(inode_data, sizeof(INODE), 1, myfs);
+    char *filename = (char *)malloc(sizeof(char));
+    int *inodenumber = (int *)malloc(sizeof(int));
+    int n = inode_data-> size / (8 + sizeof(int));
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (inode_data-> dir_1)), SEEK_SET);
+    for(int i=0; i<n; i++)
+    {
+        fread(filename, 8, 1, myfs);
+        fread(inodenumber, sizeof(int), 1, myfs);
+        if(strcmp(dir_name, filename) == 0)
+        {
+            printf("ì´ë¯¸ ì¡´ì¬í•˜ëŠ” íŒŒì¼ì…ë‹ˆë‹¤.\n");
+            return;
+        }
+    }
+    free(inode_data);
+
     SUPERBLOCK *sb_data = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK));
     fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
     fread(sb_data, sizeof(SUPERBLOCK), 1, myfs);
@@ -209,23 +237,23 @@ void mymkdir(char *dir_name)
     }
     else
     {
-        //ÇöÀç µğ·ºÅä¸®ÀÇ inode °¡Á®¿À±â
+        //í˜„ì¬ ë””ë ‰í† ë¦¬ì˜ inode ê°€ì ¸ì˜¤ê¸°
         *saveinode = rear_dir_list_ptr-> inode;
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(*saveinode-1), SEEK_SET);
         fread(i_data2, sizeof(INODE), 1, myfs);
 
-        //ÇöÀç µğ·ºÅä¸® datablock¿¡ µğ·ºÅä¸® Ãß°¡
+        //í˜„ì¬ ë””ë ‰í† ë¦¬ datablockì— ë””ë ‰í† ë¦¬ ì¶”ê°€
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data2-> dir_1)) + i_data2-> size, SEEK_SET);
         fwrite(dir_name, 8, 1, myfs);
         fwrite(&saveinumber, sizeof(int), 1, myfs);
         fwrite(minusone, sizeof(char), 1, myfs);
 
-        //ÇöÀç µğ·ºÅä¸® inode ¼öÁ¤(size ¸â¹ö)
+        //í˜„ì¬ ë””ë ‰í† ë¦¬ inode ìˆ˜ì •(size ë©¤ë²„)
         i_data2->size += (8 + sizeof(int));
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(*saveinode-1), SEEK_SET);
         fwrite(i_data2, sizeof(INODE), 1, myfs);
 
-        //»õ µğ·ºÅä¸® datablock¿¡ . .. Ãß°¡
+        //ìƒˆ ë””ë ‰í† ë¦¬ datablockì— . .. ì¶”ê°€
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (savedbnumber - 1)), SEEK_SET);
         fwrite(f_name1, 8, 1, myfs);
         fwrite(&saveinumber, sizeof(int), 1, myfs);
@@ -245,15 +273,16 @@ void mymkdir(char *dir_name)
     return;
 }
 /*
-ÀÌ¸§    : myrmdir ÇÔ¼ö
-ÀÛ¼ºÀÚ  : ¾çÀÎ¼®
-±â´É    : µğ·ºÅÍ¸® »èÁ¦
-¹Ş´Â°ª  : char *
-¸®ÅÏ°ª  : x
+ì´ë¦„    : myrmdir í•¨ìˆ˜
+ì‘ì„±ì  : ì–‘ì¸ì„
+ê¸°ëŠ¥    : ë””ë ‰í„°ë¦¬ ì‚­ì œ
+ë°›ëŠ”ê°’  : char *
+ë¦¬í„´ê°’  : x
 */
 void myrmdir(char *givenname)
 {
-    int saveinode, *fileinode, count, saveinumber;
+    int saveinode, count, saveinumber;
+    int *fileinode = (int *)malloc(sizeof(int));
     saveinode = rear_dir_list_ptr-> inode;
     FILE *myfs;
     myfs = fopen("myfs", "rb+");
@@ -261,11 +290,11 @@ void myrmdir(char *givenname)
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
     fread(presenti_data, sizeof(INODE), 1, myfs);
     int n = presenti_data-> size/12;
-    char *filename;
+    char *filename = (char *)malloc(sizeof(char));
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data-> dir_1)), SEEK_SET);
     for(int i=0; i<n; i++)
     {
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data-> dir_1 - 1)), SEEK_SET);
-        fread(filename, sizeof(8), 1, myfs);
+        fread(filename, 8, 1, myfs);
         fread(fileinode, sizeof(int), 1, myfs);
         if(strcmp(givenname, filename) == 0)
         {
@@ -278,73 +307,118 @@ void myrmdir(char *givenname)
     fread(i_data, sizeof(INODE), 1, myfs);
     saveinumber = *fileinode;
 
-    if(i_data-> type == 0 && i_data-> size == 24) //µ¥ÀÌÅÍ Å©±â = ºó µğ·ºÅÍ¸® Å©±â
+    if(i_data-> type == 0 && i_data-> size == ((8 + sizeof(int)) * 2)) //ë°ì´í„° í¬ê¸° = ë¹ˆ ë””ë ‰í„°ë¦¬ í¬ê¸°
     {
-        //µğ·ºÅÍ¸® »èÁ¦
-        for(int i = count; i<(n-1); i++)
+        //ë””ë ‰í„°ë¦¬ ì‚­ì œ
+        for(int i = count; i<(n); i++)
         {
-            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data->dir_1 - 1)) + 12 * (i + 1), SEEK_SET);
-            fread(filename, sizeof(8), 1, myfs);
+            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data->dir_1)) + (8 + sizeof(int)) * (i + 1), SEEK_SET);
+            fread(filename, 8, 1, myfs);
             fread(fileinode, sizeof(int), 1, myfs);
-            rewind(myfs);
-            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data->dir_1 - 1)) + 12 * (i), SEEK_SET);
-            fwrite(filename, sizeof(8), 1, myfs);
-            fwrite(fileinode, sizeof(int), 1, myfs);
-            rewind(myfs);            
+            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data->dir_1)) + (8 + sizeof(int)) * (i), SEEK_SET);
+            fwrite(filename, 8, 1, myfs);
+            fwrite(fileinode, sizeof(int), 1, myfs);            
         }
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data->dir_1 - 1)) + 12 * (n - 1), SEEK_SET);
-        char *minusone = "-1";
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data->dir_1)) + (8 + sizeof(int)) * (n - 1), SEEK_SET);
+        char *minusone = (char *)malloc(sizeof(char));
+        *minusone = -1;
         fwrite(minusone, sizeof(char), 1, myfs);
+        free(minusone);
 
-        //½´ÆÛºí·Ï ¼öÁ¤
+        //ìŠˆí¼ë¸”ë¡ ìˆ˜ì •
         SUPERBLOCK *sb_data = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK)); 
         fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
         fread(sb_data, sizeof(SUPERBLOCK), 1, myfs);
+        unsigned mask = 1 << 31;
         if(saveinumber>0 && saveinumber<=32)
         {
-            unsigned mask = 1;
-            mask <<= (32 - saveinumber);
+            mask >>= (saveinumber - 1);
             sb_data-> inode_1 = sb_data-> inode_1 ^ mask;
         }
         else if(saveinumber>33 && saveinumber<=64)
         {
-            unsigned mask = 1;
-            mask <<= (32 - (saveinumber - 32));
-            sb_data-> inode_1 = sb_data-> inode_1 ^ mask;
+            mask >>= (saveinumber - 33);
+            sb_data-> inode_2 = sb_data-> inode_2 ^ mask;
         }
         else if(saveinumber>65 && saveinumber<=96)
         {
-            unsigned mask = 1;
-            mask <<= (32 - (saveinumber - 64));
-            sb_data-> inode_2 = sb_data-> inode_2 ^ mask;
+            mask >>= (saveinumber - 65);
+            sb_data-> inode_3 = sb_data-> inode_3 ^ mask;
         }
         else if(saveinumber>97 && saveinumber<=128)
         {
-            unsigned mask = 1;
-            mask <<= (32 - (saveinumber - 96));
-            sb_data-> inode_1 = sb_data-> inode_1 ^ mask;
+            mask >>= (saveinumber - 97);
+            sb_data-> inode_4 = sb_data-> inode_4 ^ mask;
+        }
+        unsigned mask1 = 1 << 31;
+        if(i_data-> dir_1 >= 0 && i_data-> dir_1 <32)
+        {
+            mask1 >>= (i_data-> dir_1);
+            sb_data-> data_block_1 = sb_data-> data_block_1 ^ mask1;
+        }
+        else if(i_data-> dir_1 >= 32 && i_data-> dir_1 <64)
+        {
+            mask1 >>= (i_data-> dir_1 - 32);
+            sb_data-> data_block_2 = sb_data-> data_block_2 ^ mask1;
+        }
+        else if(i_data-> dir_1 >= 64 && i_data-> dir_1 <96)
+        {
+            mask1 >>= (i_data-> dir_1 - 64);
+            sb_data-> data_block_3 = sb_data-> data_block_3 ^ mask1;
+        }
+        else if(i_data-> dir_1 >= 96 && i_data-> dir_1 <128)
+        {
+            mask1 >>= (i_data-> dir_1 - 96);
+            sb_data-> data_block_4 = sb_data-> data_block_4 ^ mask1;
+        }
+        else if(i_data-> dir_1 >= 128 && i_data-> dir_1 <160)
+        {
+            mask1 >>= (i_data-> dir_1 - 128);
+            sb_data-> data_block_5 = sb_data-> data_block_5 ^ mask1;
+        }
+        else if(i_data-> dir_1 >= 160 && i_data-> dir_1 <192)
+        {
+            mask1 >>= (i_data-> dir_1 - 160);
+            sb_data-> data_block_6 = sb_data-> data_block_6 ^ mask1;
+        }
+        else if(i_data-> dir_1 >= 192 && i_data-> dir_1 <224)
+        {
+            mask1 >>= (i_data-> dir_1 - 192);
+            sb_data-> data_block_7 = sb_data-> data_block_7 ^ mask1;
+        }
+        else if(i_data-> dir_1 >= 224 && i_data-> dir_1 <256)
+        {
+            mask1 >>= (i_data-> dir_1 - 224);
+            sb_data-> data_block_8 = sb_data-> data_block_8 ^ mask1;
         }
         fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
         fwrite(sb_data, sizeof(SUPERBLOCK), 1, myfs);
         free(sb_data);
+
+        //í˜„ì¬ë””ë ‰í„°ë¦¬ ì‚¬ì´ì¦ˆ ë³€ê²½
+        presenti_data-> size -= (8 + sizeof(int));
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
+        fwrite(presenti_data, sizeof(INODE), 1 ,myfs);
     }
     else
     {
-        printf("»èÁ¦ÇÏ·Á´Â µğ·ºÅÍ¸®¿¡ ÆÄÀÏÀÌ Á¸ÀçÇÕ´Ï´Ù.\nµğ·ºÅÍ¸®¸¦ »èÁ¦ÇÒ¼ö ¾ø½À´Ï´Ù.");
+        printf("ì‚­ì œí•˜ë ¤ëŠ” ë””ë ‰í„°ë¦¬ì— íŒŒì¼ì´ ì¡´ì¬í•©ë‹ˆë‹¤.\në””ë ‰í„°ë¦¬ë¥¼ ì‚­ì œí• ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
     }
 
     free(presenti_data);
     free(i_data);
+    free(fileinode);
+    free(filename);
     fclose(myfs);
 
     return;
 }
 /*
-ÀÌ¸§    : mystate ÇÔ¼ö
-ÀÛ¼ºÀÚ  : ¾çÀÎ¼®
-±â´É    : ÇöÀç»óÅÂÃâ·Â
-¹Ş´Â°ª  : x
-¸®ÅÏ°ª  : x
+ì´ë¦„    : mystate í•¨ìˆ˜
+ì‘ì„±ì  : ì–‘ì¸ì„
+ê¸°ëŠ¥    : í˜„ì¬ìƒíƒœì¶œë ¥
+ë°›ëŠ”ê°’  : x
+ë¦¬í„´ê°’  : x
 */
 void mystate(void)
 {
@@ -383,9 +457,9 @@ void mystate(void)
     printf("\n");
 
     printf("Data block state :\n");
-    printf("Total : 128\n");
-    printf("used : %d\n", (savedbnumber - 1));
-    printf("Available : %d\n", (129 - savedbnumber));
+    printf("Total : 256 blocks / 65536 byte\n");
+    printf("used : %d blocks / %d byte\n", (savedbnumber - 1), ((savedbnumber - 1) * 256));
+    printf("Available : %d blocks / %d byte\n", (257 - savedbnumber), ((257 - savedbnumber) * 256));
     printf("Data block map :\n");
     bit_print(sb_data-> data_block_1);
     bit_print(sb_data-> data_block_2);
@@ -403,27 +477,32 @@ void mystate(void)
     return;
 }
 /*
-ÀÌ¸§    : mytouch ÇÔ¼ö
-ÀÛ¼ºÀÚ  : ¾çÀÎ¼®
-±â´É    : ÆÄÀÏ»ı¼º ¹× ½Ã°£º¯°æ
-¹Ş´Â°ª  : char *
-¸®ÅÏ°ª  : x
+ì´ë¦„    : mytouch í•¨ìˆ˜
+ì‘ì„±ì  : ì–‘ì¸ì„
+ê¸°ëŠ¥    : íŒŒì¼ìƒì„± ë° ì‹œê°„ë³€ê²½
+ë°›ëŠ”ê°’  : char *
+ë¦¬í„´ê°’  : x
 */
 void mytouch(char *givenname)
 {
+    if(givenname == NULL)
+    {
+        printf("íŒŒì¼ëª…ì´ í•„ìš”í•©ë‹ˆë‹¤.\n");
+        return;
+    }
+
     if(strlen(givenname) > 7)
     {
-        printf("¹®ÀÚ¿­ÀÌ ³Ê¹« ±é´Ï´Ù. (ÃÖ´ë 7±ÛÀÚ)\n");
-
+        printf("íŒŒì¼ëª…ì´ ë„ˆë¬´ ê¹ë‹ˆë‹¤.\n");
         return;
     }
 
     int saveinode;
-    saveinode = rear_dir_list_ptr-> inode; //ÇöÀç µğ·ºÅä¸®ÀÇ inode ¹øÈ£ ÀúÀå
+    saveinode = rear_dir_list_ptr-> inode; //í˜„ì¬ ë””ë ‰í† ë¦¬ì˜ inode ë²ˆí˜¸ ì €ì¥
     FILE *myfs;
     myfs = fopen("myfs", "rb+");
 
-    //ÇöÀç µğ·ºÅä¸®ÀÇ inode Á¤º¸ ºÒ·¯¿À±â
+    //í˜„ì¬ ë””ë ‰í† ë¦¬ì˜ inode ì •ë³´ ë¶ˆëŸ¬ì˜¤ê¸°
     INODE *i_data = (INODE *)malloc(sizeof(INODE)); 
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
     fread(i_data, sizeof(INODE), 1, myfs);
@@ -455,7 +534,8 @@ void mytouch(char *givenname)
 
     if(count == dir_file_num)
     {
-        //ÆÄÀÏ»ı¼º
+        //íŒŒì¼ìƒì„±
+        //ìŠˆí¼ë¸”ë¡ìˆ˜ì •
         SUPERBLOCK *sb_data = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK)); 
         fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
         fread(sb_data, sizeof(SUPERBLOCK), 1, myfs);
@@ -481,6 +561,7 @@ void mytouch(char *givenname)
         fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
         fwrite(sb_data, sizeof(SUPERBLOCK), 1, myfs);
 
+        //ì•„ì´ë…¸ë“œ ìƒì„±
         INODE *i_data3 = (INODE *)malloc(sizeof(INODE));
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (20 * (saveinumber - 1)), SEEK_SET);
         fread(i_data3, sizeof(INODE), 1, myfs);
@@ -514,24 +595,37 @@ void mytouch(char *givenname)
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (20 * (saveinumber - 1)), SEEK_SET);
         fwrite(i_data3, sizeof(INODE), 1, myfs);
 
-        //ÇöÀç µğ·ºÅä¸®ÀÇ datablock¿¡ ¹İ¿µ
+        //í˜„ì¬ ë””ë ‰í† ë¦¬ì˜ datablockì— ë°˜ì˜
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * i_data->dir_1) + i_data->size, SEEK_SET);
         fwrite(givenname, 8, 1, myfs);
         fwrite(&saveinumber, sizeof(int), 1, myfs);
         char minus_tmp = -1;
         fwrite(&minus_tmp, sizeof(char), 1, myfs);
 
-        //ÇöÀç µğ·ºÅä¸®ÀÇ size ¸â¹ö¿¡ ¹İ¿µ
+        //í˜„ì¬ ë””ë ‰í† ë¦¬ì˜ size ë©¤ë²„ì— ë°˜ì˜
         i_data->size += 8 + sizeof(int);
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
         fwrite(i_data, sizeof(INODE), 1, myfs);
 
         free(sb_data);
         free(i_data3);
+        //í˜„ì¬ë””ë ‰í„°ë¦¬ ë°ì´í„°ë¸”ë¡ì¶”ê°€
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data-> dir_1)) + i_data-> size, SEEK_SET);
+        fwrite(givenname, 8, 1, myfs);
+        fwrite(&saveinumber, sizeof(int), 1, myfs);
+        char *minusone = (char *)malloc(sizeof(char));
+        *minusone = -1;
+        fwrite(minusone, sizeof(char), 1, myfs);
+        free(minusone);
+
+        //í˜„ì¬ ë””ë ‰í† ë¦¬ inode ìˆ˜ì •(size ë©¤ë²„)
+        i_data->size += (8 + sizeof(int));
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
+        fwrite(i_data, sizeof(INODE), 1, myfs);
     }
     else
     {
-        //ÆÄÀÏ¼öÁ¤½Ã°£ º¯°æ
+        //íŒŒì¼ìˆ˜ì •ì‹œê°„ ë³€ê²½
         INODE *i_data2 = (INODE *)malloc(sizeof(INODE)); 
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (20*(inodenumber2 - 1)), SEEK_SET);
         fread(i_data2, sizeof(INODE), 1, myfs);
@@ -557,7 +651,8 @@ void mytouch(char *givenname)
     }
 
     free(i_data);
-
+    free(filename);
+    free(inodenumber);
     fclose(myfs);
 
     return;
