@@ -139,27 +139,33 @@ void mymkdir(char *dir_name)
     FILE *myfs;
     myfs = fopen("myfs", "rb+");
 
-    //동일한 파일명을 위한 예외처리
-    int presentinode = rear_dir_list_ptr-> inode;
-    INODE *inode_data = (INODE *)malloc(sizeof(INODE));
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20 * (presentinode-1), SEEK_SET);
-    fread(inode_data, sizeof(INODE), 1, myfs);
-    char *filename = (char *)malloc(sizeof(char));
-    int *inodenumber = (int *)malloc(sizeof(int));
-    int n = inode_data-> size / (8 + sizeof(int));
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (inode_data-> dir_1)), SEEK_SET);
-    for(int i=0; i<n; i++)
+    //생성할 디렉토리명이 /가 아닌 경우, 동일한 파일명을 위한 예외처리
+    if(strcmp(dir_name, "/") != 0)
     {
-        fread(filename, 8, 1, myfs);
-        fread(inodenumber, sizeof(int), 1, myfs);
-        if(strcmp(dir_name, filename) == 0)
-        {
-            printf("이미 존재하는 파일입니다.\n");
-            return;
-        }
-    }
-    free(inode_data);
+        int presentinode = rear_dir_list_ptr-> inode;
+        INODE *inode_data = (INODE *)malloc(sizeof(INODE));
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20 * (presentinode-1), SEEK_SET);
+        fread(inode_data, sizeof(INODE), 1, myfs);
+        char *filename = (char *)malloc(sizeof(char) * 8);
+        int *inodenumber = (int *)malloc(sizeof(int));
+        int n = inode_data->size / (8 + sizeof(int));
 
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (inode_data-> dir_1)), SEEK_SET);
+        for(int i = 0; i < n; i++)
+        {
+            fread(filename, 8, 1, myfs);
+            fread(inodenumber, sizeof(int), 1, myfs);
+
+            if(strcmp(dir_name, filename) == 0)
+            {
+                printf("이미 존재하는 파일입니다.\n");
+                return;
+            }
+        }
+        free(inode_data);
+    }
+
+    //superblock 검사
     SUPERBLOCK *sb_data = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK));
     fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
     fread(sb_data, sizeof(SUPERBLOCK), 1, myfs);
@@ -219,6 +225,10 @@ void mymkdir(char *dir_name)
     i_data-> indir = 0;
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinumber-1), SEEK_SET);
     fwrite(i_data, sizeof(INODE), 1, myfs);
+    //test
+    char test = 'E';
+    fwrite(&test, sizeof(char), 1, myfs);
+    //testend
 
     char *f_name1 = ".", *f_name2 = "..";
     int *saveinode = (int *)malloc(sizeof(int));
@@ -290,7 +300,7 @@ void myrmdir(char *givenname)
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
     fread(presenti_data, sizeof(INODE), 1, myfs);
     int n = presenti_data-> size/12;
-    char *filename = (char *)malloc(sizeof(char));
+    char *filename = (char *)malloc(sizeof(char) * 8);
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data-> dir_1)), SEEK_SET);
     for(int i=0; i<n; i++)
     {
@@ -508,9 +518,9 @@ void mytouch(char *givenname)
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(saveinode-1), SEEK_SET);
     fread(i_data, sizeof(INODE), 1, myfs);
     
-    char *filename = (char *)malloc(sizeof(char));
+    char *filename = (char *)malloc(sizeof(char) * 8);
     int *inodenumber = (int *)malloc(sizeof(int));
-    int inodenumber2; 
+    int inodenumber2;
     unsigned count = 0;
 
     int dir_file_num = i_data->size / (8 + sizeof(int));
