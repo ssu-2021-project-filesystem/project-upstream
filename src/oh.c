@@ -85,7 +85,7 @@ void mycpto (const char* source_file, const char* dest_file  )
     if(source_file ==NULL || dest_file == NULL)
     {
         printf("오류 : 인자가 부족합니다");
-        abort();
+        return;
     }
     char *tmp_file_string_ptr = (char *)malloc(sizeof(char) * 8); //디렉토리의 datablock에서 추출한 파일명을 가리킬 포인터
     int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //디렉토리의 datablock에서 추출한 inode 번호를 가리킬 포인터
@@ -110,7 +110,7 @@ void mycpto (const char* source_file, const char* dest_file  )
         else
         {
         printf("오류 : %s 파일이 없습니다.\n", source_file); //파일명을 현재 디렉토리에서 못찾으면 오류 띄우기
-        abort();
+        return;
         }
     }
 
@@ -120,7 +120,7 @@ void mycpto (const char* source_file, const char* dest_file  )
     if ((ofp = fopen(dest_file, "wb")) == NULL)
     {
         printf("오류 : %s 파일을 열 수 없습니다. \n", dest_file);
-        abort();
+        return;
     }
 
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (inode - 1)), SEEK_SET);
