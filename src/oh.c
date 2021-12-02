@@ -1,72 +1,77 @@
 #include "user.h"
-#include <time.h>
 
-DIR_LIST* dirfound(char* fdir);
-char* prtpwd();
-int cntfound();
-int acc_inode();
-int acc_data();
 
 /*
-ì´ë¦„    : mycd í•¨ìˆ˜
-ì‘ì„±ì  : ì˜¤ê·œë¹ˆ
-ê¸°ëŠ¥    : ì‘ì—… ë””ë ‰í† ë¦¬ì˜ ê²½ë¡œë¥¼ ë³€ê²½í•œë‹¤
-ë°›ëŠ”ê°’  : ê²½ë¡œ ë¬¸ìì—´
-ë¦¬í„´ê°’  : X
+ÀÌ¸§    : mycd ÇÔ¼ö
+ÀÛ¼ºÀÚ  : ¿À±Ôºó
+±â´É    : ÀÛ¾÷ µğ·ºÅä¸®ÀÇ °æ·Î¸¦ º¯°æÇÑ´Ù
+¹Ş´Â°ª  : °æ·Î ¹®ÀÚ¿­
+¸®ÅÏ°ª  : X
 */
-void mycd (char* path)
+void mycd (char path[])
 {
     if(path == NULL)
-    {//path ì¸ìê°€ ì—†ì„ì‹œ
-        rear_dir_list_ptr == front_dir_list_ptr;//ì‘ì—… ë””ë ‰í„°ë¦¬ë¥¼ í™ˆë””ë ‰í„°ë¦¬ë¡œ ì„¤ì •
+    {//path ÀÎÀÚ°¡ ¾øÀ»½Ã
+        rear_dir_list_ptr = front_dir_list_ptr;//ÀÛ¾÷ µğ·ºÅÍ¸®¸¦ È¨µğ·ºÅÍ¸®·Î ¼³Á¤
     }
-
     else if (path != NULL)
     {
-        int first = 0;//ì²« / ì˜ë¼ë‚´ê¸°
+        int first = 0;//Ã¹ / Àß¶ó³»±â
         DIR_LIST *tmp_ptr;
         char *nm_ptr = strtok(path, "/");
-        while (nm_ptr != NULL)//ì´ë¦„ì´ NULLê°’ì´ ì•„ë‹ˆë¼ë©´
+        printf("%s",nm_ptr);
+        while (nm_ptr != NULL)//ÀÌ¸§ÀÌ NULL°ªÀÌ ¾Æ´Ï¶ó¸é
         {
-         if (first == 0)//ì‹œì‘ë””ë ‰í† ë¦¬ê°€ . , .. , /ì…‹ ì¤‘ í•˜ë‚˜  . ì™€ ..ì—ì„œ ì‹œì‘í• ë•Œì˜ ê²½ìš° íŒë‹¨
-         {
-          if (nm_ptr == ".") //.ì—ì„œ ì‹œì‘
-          {
-          tmp_ptr = rear_dir_list_ptr;
-          nm_ptr = strtok(NULL, "/");
-          first++;
-          }
-          else if (nm_ptr == "..")//..ì—ì„œ ì‹œì‘
-          {
-           int i = 0;
-           tmp_ptr = front_dir_list_ptr;
-           while (i < cntfound()-1){
-               tmp_ptr = tmp_ptr -> next_ptr;
-           } // tmp_ptrì´ í˜„ì¬ ë””ë ‰í„°ë¦¬ ë¦¬ìŠ¤íŠ¸ì—ì„œ (ë§ˆì§€ë§‰-1)ë²ˆì§¸ ë””ë ‰í† ë¦¬ë¥¼ ê°€ë¦¬í‚¤ë„ë¡ í•¨.
-           tmp_ptr = rear_dir_list_ptr;
-           nm_ptr = strtok(NULL, "/");
-           first++;
-          }
-         }
-         else if (first != 0)
-         {
-          DIR_LIST* new_dir = malloc(sizeof(DIR_LIST)); 
-          new_dir-> name = nm_ptr;
-          char* s = strcat("/",nm_ptr);//s = /'ë‹¤ìŒ ë””ë ‰í† ë¦¬'
-          new_dir-> inode = path_to_inode(strcat(prtpwd(),s));
-          tmp_ptr -> next_ptr = new_dir;
-          nm_ptr = strtok(NULL, "/");
-         }
+            if (first == 0)//½ÃÀÛµğ·ºÅä¸®°¡ . , .. , /¼Â Áß ÇÏ³ª  . ¿Í ..¿¡¼­ ½ÃÀÛÇÒ¶§ÀÇ °æ¿ì ÆÇ´Ü
+            {
+                if (nm_ptr == ".") //.¿¡¼­ ½ÃÀÛ
+                {
+                    tmp_ptr = rear_dir_list_ptr;
+                    printf("%s\n", nm_ptr);
+                    nm_ptr = strtok(NULL, "/");
+                    first++;
+                    continue;
+                }
+                else if (nm_ptr == "..")//..¿¡¼­ ½ÃÀÛ
+                {
+                    int i = 0;
+                    tmp_ptr = front_dir_list_ptr;
+                    while (i < cntfound()-1)
+                    {
+                        tmp_ptr = tmp_ptr -> next_ptr;
+                    } // tmp_ptrÀÌ ÇöÀç µğ·ºÅÍ¸® ¸®½ºÆ®¿¡¼­ (¸¶Áö¸·-1)¹øÂ° µğ·ºÅä¸®¸¦ °¡¸®Å°µµ·Ï ÇÔ.
+                    
+                    tmp_ptr = rear_dir_list_ptr;
+                    nm_ptr = strtok(NULL, "/");
+                    first++;
+                    continue;
+                }
+                else
+                {
+                    ;
+                }
+            }
+            else if (first != 0)
+            {
+                DIR_LIST* new_dir = malloc(sizeof(DIR_LIST)); 
+                new_dir-> name = nm_ptr;
+                printf("%s",nm_ptr);
+                char* s = strcat("/",nm_ptr);//s = /'´ÙÀ½ µğ·ºÅä¸®'
+                new_dir-> inode = path_to_inode(strcat(prtpwd(),s));
+                tmp_ptr -> next_ptr = new_dir;
+                nm_ptr = strtok(NULL, "/");
+            }
         }
     }
+    return;
 }
 
 /*
-ì´ë¦„    : mycpto í•¨ìˆ˜
-ì‘ì„±ì  : ì˜¤ê·œë¹ˆ
-ê¸°ëŠ¥    : MY íŒŒì¼ì‹œìŠ¤í…œì— ìˆëŠ” íŒŒì¼ì„ í˜¸ìŠ¤íŠ¸ ì»´í“¨í„°ë¡œ ë³µì‚¬í•œë‹¤.
-ë°›ëŠ”ê°’  : íŒŒì¼ëª… 1,2
-ë¦¬í„´ê°’  : ë¦¬í„´ê°’
+ÀÌ¸§    : mycpto ÇÔ¼ö
+ÀÛ¼ºÀÚ  : ¿À±Ôºó
+±â´É    : MY ÆÄÀÏ½Ã½ºÅÛ¿¡ ÀÖ´Â ÆÄÀÏÀ» È£½ºÆ® ÄÄÇ»ÅÍ·Î º¹»çÇÑ´Ù.
+¹Ş´Â°ª  : ÆÄÀÏ¸í 1,2
+¸®ÅÏ°ª  : ¸®ÅÏ°ª
 */
 void mycpto (const char* source_file, const char* dest_file  )
 {
@@ -75,47 +80,60 @@ void mycpto (const char* source_file, const char* dest_file  )
     int c,d;
     int i = 0;
     int inode = 1;
+    int tmp_datablock;
 
-    char *tmp_file_string_ptr = (char *)malloc(sizeof(char) * 8); //ë””ë ‰í† ë¦¬ì˜ datablockì—ì„œ ì¶”ì¶œí•œ íŒŒì¼ëª…ì„ ê°€ë¦¬í‚¬ í¬ì¸í„°
-    int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //ë””ë ‰í† ë¦¬ì˜ datablockì—ì„œ ì¶”ì¶œí•œ inode ë²ˆí˜¸ë¥¼ ê°€ë¦¬í‚¬ í¬ì¸í„°
-    INODE *inode_ptr = (INODE *)malloc(sizeof(INODE));// inode í¬ì¸í„°
+    if(source_file ==NULL || dest_file == NULL)
+    {
+        printf("¿À·ù : ÀÎÀÚ°¡ ºÎÁ·ÇÕ´Ï´Ù");
+        abort();
+    }
+    char *tmp_file_string_ptr = (char *)malloc(sizeof(char) * 8); //µğ·ºÅä¸®ÀÇ datablock¿¡¼­ ÃßÃâÇÑ ÆÄÀÏ¸íÀ» °¡¸®Å³ Æ÷ÀÎÅÍ
+    int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //µğ·ºÅä¸®ÀÇ datablock¿¡¼­ ÃßÃâÇÑ inode ¹øÈ£¸¦ °¡¸®Å³ Æ÷ÀÎÅÍ
+    INODE *inode_ptr = (INODE *)malloc(sizeof(INODE));// inode Æ÷ÀÎÅÍ
 
     myfs = fopen("myfs", "rb");
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*(path_to_inode(prtpwd())-1)),SEEK_SET);//í˜„ì¬ ë””ë ‰í† ë¦¬ì˜ ë°ì´í„°ë¸”ë¡ ì•ìœ¼ë¡œ í¬ì¸í„° ì´ë™
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (rear_dir_list_ptr -> inode - 1)), SEEK_SET);
     fread(inode_ptr, sizeof(INODE), 1, myfs);
-    int tmp_datablock = (int)(inode_ptr->dir_1 + 1);
-    fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs); // í¬ì¸í„°ë¡œ íŒŒì¼ëª… í™•ì¸
+
+    tmp_datablock = (int)(inode_ptr->dir_1 + 1);
+    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+ INODE_LIST_SIZE +  (256 * (tmp_datablock - 1)),SEEK_SET);//ÇöÀç µğ·ºÅä¸®ÀÇ µ¥ÀÌÅÍºí·Ï ¾ÕÀ¸·Î Æ÷ÀÎÅÍ ÀÌµ¿
+    fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs); // Æ÷ÀÎÅÍ·Î ÆÄÀÏ¸í È®ÀÎ
 
     while(!strcmp(tmp_file_string_ptr, source_file))
-    {//ì°¾ëŠ” íŒŒì¼ê³¼ í™•ì¸í•œ íŒŒì¼ì˜ ì´ë¦„ì´ ê°™ì§€ ì•Šë‹¤ë©´
+    {//Ã£´Â ÆÄÀÏ°ú È®ÀÎÇÑ ÆÄÀÏÀÇ ÀÌ¸§ÀÌ °°Áö ¾Ê´Ù¸é
         if((c = getchar()) != EOF)
-        {//myfsíŒŒì¼ì˜ ë í™•ì¸
+        {//myfsÆÄÀÏÀÇ ³¡ È®ÀÎ
             fseek(myfs, -1, SEEK_CUR);
-            fseek(myfs,sizeof(int),SEEK_CUR);//í˜„ì¬ í¬ì¸í„° ìœ„ì¹˜ë¡œë¶€í„° intí˜• í¬ê¸°ë§Œí¼ ì´ë™
+            fseek(myfs,sizeof(int),SEEK_CUR);//ÇöÀç Æ÷ÀÎÅÍ À§Ä¡·ÎºÎÅÍ intÇü Å©±â¸¸Å­ ÀÌµ¿
             fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs);
         }
         else
         {
-        fprintf(stderr,"ì˜¤ë¥˜ : %s íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤.\n", source_file); //íŒŒì¼ëª…ì„ í˜„ì¬ ë””ë ‰í† ë¦¬ì—ì„œ ëª»ì°¾ìœ¼ë©´ ì˜¤ë¥˜ ë„ìš°ê¸°
-        exit(1);
+        printf("¿À·ù : %s ÆÄÀÏÀÌ ¾ø½À´Ï´Ù.\n", source_file); //ÆÄÀÏ¸íÀ» ÇöÀç µğ·ºÅä¸®¿¡¼­ ¸øÃ£À¸¸é ¿À·ù ¶ç¿ì±â
+        abort();
         }
     }
+
     fread(tmp_inode_ptr, sizeof(int), 1, myfs);
     inode =*tmp_inode_ptr;
 
     if ((ofp = fopen(dest_file, "wb")) == NULL)
     {
-        fprintf(stderr, "ì˜¤ë¥˜ : %s íŒŒì¼ì„ ì—´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤. \n", source_file);
-        exit(1);
+        printf("¿À·ù : %s ÆÄÀÏÀ» ¿­ ¼ö ¾ø½À´Ï´Ù. \n", dest_file);
+        abort();
     }
 
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((inode_ptr->dir_1)- 1)),SEEK_SET);//ìƒˆë¡œìš´ íŒŒì¼ì— ë³µì‚¬
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (inode - 1)), SEEK_SET);
+    fread(inode_ptr, sizeof(INODE), 1, myfs);
+
+    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+INODE_LIST_SIZE +(DATA_BLOCK_SIZE*((inode_ptr->dir_1)- 1)),SEEK_SET);//»õ·Î¿î ÆÄÀÏ¿¡ º¹»ç
     while(i != DATA_BLOCK_SIZE)
     {
-        d = getchar();
+        d = getc(myfs);
         putc(d,ofp);
         i++;
     }
+    
     free(tmp_file_string_ptr);
     free(tmp_inode_ptr);
     free(inode_ptr);
@@ -126,11 +144,11 @@ void mycpto (const char* source_file, const char* dest_file  )
 }
 
 /*
-ì´ë¦„    : mycpfrom í•¨ìˆ˜
-ì‘ì„±ì  : ì˜¤ê·œë¹ˆ
-ê¸°ëŠ¥    : í˜¸ìŠ¤íŠ¸ ì»´í“¨í„°ì— ìˆëŠ” íŒŒì¼ì„ MY íŒŒì¼ì‹œìŠ¤í…œìœ¼ë¡œ ë³µì‚¬í•œë‹¤.
-ë°›ëŠ”ê°’  : íŒŒì¼ëª… 1,2
-ë¦¬í„´ê°’  : ë¦¬í„´ê°’
+ÀÌ¸§    : mycpfrom ÇÔ¼ö
+ÀÛ¼ºÀÚ  : ¿À±Ôºó
+±â´É    : È£½ºÆ® ÄÄÇ»ÅÍ¿¡ ÀÖ´Â ÆÄÀÏÀ» MY ÆÄÀÏ½Ã½ºÅÛÀ¸·Î º¹»çÇÑ´Ù.
+¹Ş´Â°ª  : ÆÄÀÏ¸í 1,2
+¸®ÅÏ°ª  : ¸®ÅÏ°ª
 */
 
 void mycpfrom (const char* source_file, const char* dest_file )
@@ -141,25 +159,25 @@ void mycpfrom (const char* source_file, const char* dest_file )
     time_t Time;
     struct tm* TimeInfo;
  
-    Time = time(NULL);                // í˜„ì¬ ì‹œê°„ì„ ë°›ìŒ
+    Time = time(NULL);                // ÇöÀç ½Ã°£À» ¹ŞÀ½
     TimeInfo = localtime(&Time); 
 
-    myfs = fopen("myfs", "wb");
-    char *tmp_dir_string_ptr = (char *)malloc(sizeof(char) * 8); //ë””ë ‰í† ë¦¬ì˜ datablockì—ì„œ ì¶”ì¶œí•œ ë””ë ‰í† ë¦¬ëª…ì„ ê°€ë¦¬í‚¬ í¬ì¸í„°
-    int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //ë””ë ‰í† ë¦¬ì˜ datablockì—ì„œ ì¶”ì¶œí•œ inode ë²ˆí˜¸ë¥¼ ê°€ë¦¬í‚¬ í¬ì¸í„°
+    myfs = fopen("myfs", "rb+");
+    char *tmp_dir_string_ptr = (char *)malloc(sizeof(char) * 8); //µğ·ºÅä¸®ÀÇ datablock¿¡¼­ ÃßÃâÇÑ µğ·ºÅä¸®¸íÀ» °¡¸®Å³ Æ÷ÀÎÅÍ
+    int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //µğ·ºÅä¸®ÀÇ datablock¿¡¼­ ÃßÃâÇÑ inode ¹øÈ£¸¦ °¡¸®Å³ Æ÷ÀÎÅÍ
     INODE *inode_data_ptr = (INODE *)malloc(sizeof(INODE));
     
     int new_inode = acc_inode();
     int new_data = acc_data();
     ifp = fopen(source_file,"rb");
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*(new_data-1)),SEEK_SET);//ìƒˆë¡œìš´ íŒŒì¼ì— ë³µì‚¬
+    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*(new_data-1)),SEEK_SET);//»õ·Î¿î ÆÄÀÏ¿¡ º¹»ç
     while ((c = getc(ifp)) != EOF)
     {
       size_F++;
       putchar(c);
     }
 
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (new_inode - 1)),SEEK_SET);//INODELIST ì±„ìš°ê¸°
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (new_inode - 1)),SEEK_SET);//INODELIST Ã¤¿ì±â
     fread(inode_data_ptr, sizeof(INODE), 1, myfs);
     inode_data_ptr -> type = 0;
     inode_data_ptr -> year = TimeInfo ->tm_year+1900;
@@ -189,11 +207,11 @@ void mycpfrom (const char* source_file, const char* dest_file )
 }
 
 /*
-ì´ë¦„    : mycp í•¨ìˆ˜
-ì‘ì„±ì  : ì˜¤ê·œë¹ˆ
-ê¸°ëŠ¥    : MY íŒŒì¼ì‹œìŠ¤í…œì— ìˆëŠ” íŒŒì¼ì„ ë³µì‚¬í•˜ëŠ” ëª…ë ¹ì–´
-ë°›ëŠ”ê°’  : íŒŒì¼ëª… 1,2
-ë¦¬í„´ê°’  : ë¦¬í„´ê°’
+ÀÌ¸§    : mycp ÇÔ¼ö
+ÀÛ¼ºÀÚ  : ¿À±Ôºó
+±â´É    : MY ÆÄÀÏ½Ã½ºÅÛ¿¡ ÀÖ´Â ÆÄÀÏÀ» º¹»çÇÏ´Â ¸í·É¾î
+¹Ş´Â°ª  : ÆÄÀÏ¸í 1,2
+¸®ÅÏ°ª  : ¸®ÅÏ°ª
 */
 
 void mycp(const char* source_file, const char* dest_file  )
@@ -207,38 +225,38 @@ void mycp(const char* source_file, const char* dest_file  )
     time_t Time;
     struct tm* TimeInfo;
  
-    Time = time(NULL);                // í˜„ì¬ ì‹œê°„ì„ ë°›ìŒ
+    Time = time(NULL);                // ÇöÀç ½Ã°£À» ¹ŞÀ½
     TimeInfo = localtime(&Time); 
 
-    char *tmp_file_string_ptr; //ë””ë ‰í† ë¦¬ì˜ datablockì—ì„œ ì¶”ì¶œí•œ íŒŒì¼ëª…ì„ ê°€ë¦¬í‚¬ í¬ì¸í„°
-    int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //ë””ë ‰í† ë¦¬ì˜ datablockì—ì„œ ì¶”ì¶œí•œ inode ë²ˆí˜¸ë¥¼ ê°€ë¦¬í‚¬ í¬ì¸í„°
-    INODE *inode_data_ptr = (INODE *)malloc(sizeof(INODE));// inode í¬ì¸í„°
-    char *tmp_data_string; //ë””ë ‰í† ë¦¬ì˜ datablockì—ì„œ ì¶”ì¶œí•œ ë°ì´í„°ë¥¼ ê°€ë¦¬í‚¬ í¬ì¸í„°
+    char *tmp_file_string_ptr; //µğ·ºÅä¸®ÀÇ datablock¿¡¼­ ÃßÃâÇÑ ÆÄÀÏ¸íÀ» °¡¸®Å³ Æ÷ÀÎÅÍ
+    int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //µğ·ºÅä¸®ÀÇ datablock¿¡¼­ ÃßÃâÇÑ inode ¹øÈ£¸¦ °¡¸®Å³ Æ÷ÀÎÅÍ
+    INODE *inode_data_ptr = (INODE *)malloc(sizeof(INODE));// inode Æ÷ÀÎÅÍ
+    char *tmp_data_string; //µğ·ºÅä¸®ÀÇ datablock¿¡¼­ ÃßÃâÇÑ µ¥ÀÌÅÍ¸¦ °¡¸®Å³ Æ÷ÀÎÅÍ
 
-    myfs = fopen("myfs", "rb");
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*(path_to_inode(prtpwd())-1)),SEEK_SET);//í˜„ì¬ ë””ë ‰í† ë¦¬ì˜ ë°ì´í„°ë¸”ë¡ ì•ìœ¼ë¡œ í¬ì¸í„° ì´ë™
+    myfs = fopen("myfs", "rb+");
+    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*(path_to_inode(prtpwd())-1)),SEEK_SET);//ÇöÀç µğ·ºÅä¸®ÀÇ µ¥ÀÌÅÍºí·Ï ¾ÕÀ¸·Î Æ÷ÀÎÅÍ ÀÌµ¿
     fread(inode_data_ptr, sizeof(INODE), 1, myfs);
     int tmp_datablock = (int)(inode_data_ptr->dir_1 + 1);
-    fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs); // í¬ì¸í„°ë¡œ íŒŒì¼ëª… í™•ì¸
+    fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs); // Æ÷ÀÎÅÍ·Î ÆÄÀÏ¸í È®ÀÎ
 
     while(!strcmp(tmp_file_string_ptr, source_file))
-    {//ì°¾ëŠ” íŒŒì¼ê³¼ í™•ì¸í•œ íŒŒì¼ì˜ ì´ë¦„ì´ ê°™ì§€ ì•Šë‹¤ë©´
+    {//Ã£´Â ÆÄÀÏ°ú È®ÀÎÇÑ ÆÄÀÏÀÇ ÀÌ¸§ÀÌ °°Áö ¾Ê´Ù¸é
         if((c = getchar()) != EOF)
-        {//myfsíŒŒì¼ì˜ ë í™•ì¸
+        {//myfsÆÄÀÏÀÇ ³¡ È®ÀÎ
             fseek(myfs, -1, SEEK_CUR);
-            fseek(myfs,sizeof(int),SEEK_CUR);//í˜„ì¬ í¬ì¸í„° ìœ„ì¹˜ë¡œë¶€í„° intí˜• í¬ê¸°ë§Œí¼ ì´ë™
+            fseek(myfs,sizeof(int),SEEK_CUR);//ÇöÀç Æ÷ÀÎÅÍ À§Ä¡·ÎºÎÅÍ intÇü Å©±â¸¸Å­ ÀÌµ¿
             fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs);
         }
         else
         {
-        fprintf(stderr,"ì˜¤ë¥˜ : %s íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤.\n", source_file); //íŒŒì¼ëª…ì„ í˜„ì¬ ë””ë ‰í† ë¦¬ì—ì„œ ëª»ì°¾ìœ¼ë©´ ì˜¤ë¥˜ ë„ìš°ê¸°
+        fprintf(stderr,"¿À·ù : %s ÆÄÀÏÀÌ ¾ø½À´Ï´Ù.\n", source_file); //ÆÄÀÏ¸íÀ» ÇöÀç µğ·ºÅä¸®¿¡¼­ ¸øÃ£À¸¸é ¿À·ù ¶ç¿ì±â
         exit(1);
         }
     }
     fread(tmp_inode_ptr, sizeof(int), 1, myfs);
     inode =*tmp_inode_ptr;
 
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((inode_data_ptr->dir_1)- 1)),SEEK_SET);//ë¬¸ìì—´ í¬ì¸í„°ì— ë³µì‚¬í•´ë†“ê¸°
+    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((inode_data_ptr->dir_1)- 1)),SEEK_SET);//¹®ÀÚ¿­ Æ÷ÀÎÅÍ¿¡ º¹»çÇØ³õ±â
     while(i != DATA_BLOCK_SIZE)
     {
         tmp = getchar();
@@ -252,9 +270,8 @@ void mycp(const char* source_file, const char* dest_file  )
     int new_inode = acc_inode();
     int new_data = acc_data();
     
-    myfs = fopen("myfs","wb");
     rewind(myfs);
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*(new_data-1)),SEEK_SET);//ìƒˆë¡œìš´ íŒŒì¼ì— ë³µì‚¬
+    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*(new_data-1)),SEEK_SET);//»õ·Î¿î ÆÄÀÏ¿¡ º¹»ç
     int k = 0;
     int j = sizeof(tmp_data_string);
     while (k < j);
@@ -264,7 +281,7 @@ void mycp(const char* source_file, const char* dest_file  )
       k++;
     }
 
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (new_inode - 1)),SEEK_SET);//INODELIST ì±„ìš°ê¸°
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (new_inode - 1)),SEEK_SET);//INODELIST Ã¤¿ì±â
     fread(inode_data_ptr, sizeof(INODE), 1, myfs);
     inode_data_ptr -> type = 0;
     inode_data_ptr -> year = TimeInfo ->tm_year+1900;
@@ -294,11 +311,11 @@ void mycp(const char* source_file, const char* dest_file  )
 }
 
 /*
-ì´ë¦„    : myrm í•¨ìˆ˜
-ì‘ì„±ì  : ì˜¤ê·œë¹ˆ
-ê¸°ëŠ¥    : íŒŒì¼ì„ ì‚­ì œí•˜ëŠ” ëª…ë ¹ì–´
-ë°›ëŠ”ê°’  : íŒŒì¼ëª…
-ë¦¬í„´ê°’  : ë¦¬í„´ê°’
+ÀÌ¸§    : myrm ÇÔ¼ö
+ÀÛ¼ºÀÚ  : ¿À±Ôºó
+±â´É    : ÆÄÀÏÀ» »èÁ¦ÇÏ´Â ¸í·É¾î
+¹Ş´Â°ª  : ÆÄÀÏ¸í
+¸®ÅÏ°ª  : ¸®ÅÏ°ª
 */
 
 void myrm(const char* file)
@@ -307,30 +324,30 @@ void myrm(const char* file)
     int c,i=0;
     int inode = 1;
 
-    char *tmp_file_string_ptr = (char *)malloc(sizeof(char) * 8); //ë””ë ‰í† ë¦¬ì˜ datablockì—ì„œ ì¶”ì¶œí•œ íŒŒì¼ëª…ì„ ê°€ë¦¬í‚¬ í¬ì¸í„°
-    int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //ë””ë ‰í† ë¦¬ì˜ datablockì—ì„œ ì¶”ì¶œí•œ inode ë²ˆí˜¸ë¥¼ ê°€ë¦¬í‚¬ í¬ì¸í„°
-    INODE *inode_ptr = (INODE *)malloc(sizeof(INODE));// inode í¬ì¸í„°
+    char *tmp_file_string_ptr = (char *)malloc(sizeof(char) * 8); //µğ·ºÅä¸®ÀÇ datablock¿¡¼­ ÃßÃâÇÑ ÆÄÀÏ¸íÀ» °¡¸®Å³ Æ÷ÀÎÅÍ
+    int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //µğ·ºÅä¸®ÀÇ datablock¿¡¼­ ÃßÃâÇÑ inode ¹øÈ£¸¦ °¡¸®Å³ Æ÷ÀÎÅÍ
+    INODE *inode_ptr = (INODE *)malloc(sizeof(INODE));// inode Æ÷ÀÎÅÍ
 
-    myfs = fopen("myfs", "rb");
+    myfs = fopen("myfs", "rb+");
     if (myfs == NULL)
     {
-        printf("myrm() í•¨ìˆ˜ : íŒŒì¼ ì—´ê¸°ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.\n");
+        printf("myrm() ÇÔ¼ö : ÆÄÀÏ ¿­±â¿¡ ½ÇÆĞÇß½À´Ï´Ù.\n");
         abort();
     }
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((path_to_inode(prtpwd()))-1)),SEEK_SET);//í˜„ì¬ ë””ë ‰í† ë¦¬ì˜ ë°ì´í„°ë¸”ë¡ ì•ìœ¼ë¡œ í¬ì¸í„° ì´ë™
-    fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs); // í¬ì¸í„°ë¡œ íŒŒì¼ëª… í™•ì¸
+    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((path_to_inode(prtpwd()))-1)),SEEK_SET);//ÇöÀç µğ·ºÅä¸®ÀÇ µ¥ÀÌÅÍºí·Ï ¾ÕÀ¸·Î Æ÷ÀÎÅÍ ÀÌµ¿
+    fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs); // Æ÷ÀÎÅÍ·Î ÆÄÀÏ¸í È®ÀÎ
 
     while(!strcmp(tmp_file_string_ptr, file))
-    {//ì°¾ëŠ” íŒŒì¼ê³¼ í™•ì¸í•œ íŒŒì¼ì˜ ì´ë¦„ì´ ê°™ì§€ ì•Šë‹¤ë©´
+    {//Ã£´Â ÆÄÀÏ°ú È®ÀÎÇÑ ÆÄÀÏÀÇ ÀÌ¸§ÀÌ °°Áö ¾Ê´Ù¸é
         if((c = getchar()) != EOF)
-        {//myfsíŒŒì¼ì˜ ë í™•ì¸
+        {//myfsÆÄÀÏÀÇ ³¡ È®ÀÎ
             fseek(myfs, -1, SEEK_CUR);
-            fseek(myfs,sizeof(int),SEEK_CUR);//í˜„ì¬ í¬ì¸í„° ìœ„ì¹˜ë¡œë¶€í„° intí˜• í¬ê¸°ë§Œí¼ ì´ë™
+            fseek(myfs,sizeof(int),SEEK_CUR);//ÇöÀç Æ÷ÀÎÅÍ À§Ä¡·ÎºÎÅÍ intÇü Å©±â¸¸Å­ ÀÌµ¿
             fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs);
         }
         else
         {
-        fprintf(stderr,"ì˜¤ë¥˜ : %s íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤.\n", file); //íŒŒì¼ëª…ì„ í˜„ì¬ ë””ë ‰í† ë¦¬ì—ì„œ ëª»ì°¾ìœ¼ë©´ ì˜¤ë¥˜ ë„ìš°ê¸°
+        fprintf(stderr,"¿À·ù : %s ÆÄÀÏÀÌ ¾ø½À´Ï´Ù.\n", file); //ÆÄÀÏ¸íÀ» ÇöÀç µğ·ºÅä¸®¿¡¼­ ¸øÃ£À¸¸é ¿À·ù ¶ç¿ì±â
         exit(1);
         }
     }
@@ -338,7 +355,6 @@ void myrm(const char* file)
     inode =*tmp_inode_ptr;
     fclose(myfs);
 
-    myfs = fopen("myfs", "wb");
     rewind(myfs);
     fseek(myfs, BOOT_BLOCK_SIZE + (inode- 1) ,SEEK_SET);//INODELIST 
     putchar(0);
@@ -353,11 +369,11 @@ void myrm(const char* file)
 }
 
 /*
-ì´ë¦„    : cntfound í•¨ìˆ˜
-ì‘ì„±ì  : ì˜¤ê·œë¹ˆ
-ê¸°ëŠ¥    : dir_listì—ì„œ í˜„ì¬ ì´ì–´ì§„ ë””ë ‰í† ë¦¬ ìˆ˜ ë¦¬í„´
-ë°›ëŠ”ê°’  : X
-ë¦¬í„´ê°’  : countê°’
+ÀÌ¸§    : cntfound ÇÔ¼ö
+ÀÛ¼ºÀÚ  : ¿À±Ôºó
+±â´É    : dir_list¿¡¼­ ÇöÀç ÀÌ¾îÁø µğ·ºÅä¸® ¼ö ¸®ÅÏ
+¹Ş´Â°ª  : X
+¸®ÅÏ°ª  : count°ª
 */
 
 int cntfound() 
@@ -367,20 +383,21 @@ int cntfound()
     while ((tmp_dir->next_ptr) != NULL)
     {
         {
-            cnt++;
             tmp_dir = tmp_dir->next_ptr;
+            cnt++;
+            printf("fff\n");
         }
     }
-    return cnt;//íƒìƒ‰ ì‹¤íŒ¨ì‹œ
+    return cnt;//Å½»ö ½ÇÆĞ½Ã
 
 }
 
 /*
-ì´ë¦„    : prtpwd í•¨ìˆ˜
-ì‘ì„±ì  : ì˜¤ê·œë¹ˆ
-ê¸°ëŠ¥    : pwdë¥¼ ë¬¸ìì—´ë¡œ ë¦¬í„´
-ë°›ëŠ”ê°’  : X
-ë¦¬í„´ê°’  : pwd ë¬¸ìì—´ê°’
+ÀÌ¸§    : prtpwd ÇÔ¼ö
+ÀÛ¼ºÀÚ  : ¿À±Ôºó
+±â´É    : pwd¸¦ ¹®ÀÚ¿­·Î ¸®ÅÏ
+¹Ş´Â°ª  : X
+¸®ÅÏ°ª  : pwd ¹®ÀÚ¿­°ª
 */
 char* prtpwd()
 {
@@ -406,11 +423,11 @@ char* prtpwd()
 }
 
 /*
-ì´ë¦„    : acc_inode í•¨ìˆ˜
-ì‘ì„±ì  : ì˜¤ê·œë¹ˆ
-ê¸°ëŠ¥    : ê°€ìš©ì¤‘ì´ì§€ ì•Šì€ inode ë²ˆí˜¸ë¥¼ ê°€ì ¸ì˜¤ê³ , ê·¸ inodeë²ˆí˜¸ì— í•´ë‹¹í•˜ëŠ” ìŠˆí¼ë¸”ë¡ì„ 1ë¡œ ì±„ìš´ë‹¤.
-ë°›ëŠ”ê°’  : X
-ë¦¬í„´ê°’  : ê°€ìš©ì¤‘ì´ì§€ ì•Šì€ inode ë²ˆí˜¸
+ÀÌ¸§    : acc_inode ÇÔ¼ö
+ÀÛ¼ºÀÚ  : ¿À±Ôºó
+±â´É    : °¡¿ëÁßÀÌÁö ¾ÊÀº inode ¹øÈ£¸¦ °¡Á®¿À°í, ±× inode¹øÈ£¿¡ ÇØ´çÇÏ´Â ½´ÆÛºí·ÏÀ» 1·Î Ã¤¿î´Ù.
+¹Ş´Â°ª  : X
+¸®ÅÏ°ª  : °¡¿ëÁßÀÌÁö ¾ÊÀº inode ¹øÈ£
 */
 
 int acc_inode()
@@ -421,27 +438,27 @@ int acc_inode()
     myfs = fopen("myfs", "rb");
     if (myfs == NULL)
     {
-        printf("acc_inode() í•¨ìˆ˜ : íŒŒì¼ ì—´ê¸°ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.\n");
+        printf("acc_inode() ÇÔ¼ö : ÆÄÀÏ ¿­±â¿¡ ½ÇÆĞÇß½À´Ï´Ù.\n");
         abort();
     }
 
     SUPERBLOCK *sb_ptr = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK));
     fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
-    fread(sb_ptr, sizeof(SUPERBLOCK), 1, myfs);//ì‚¬ìš©ì¤‘ì¸ ìŠˆí¼ë¸”ë¡ í™•ì¸í•˜ì—¬ ê°€ìš©ì¤‘ì´ì§€ ì•Šì€ ì•„ì´ë…¸ë“œì— íŒŒì¼ ë„£ê¸° ìœ„í•¨.
+    fread(sb_ptr, sizeof(SUPERBLOCK), 1, myfs);//»ç¿ëÁßÀÎ ½´ÆÛºí·Ï È®ÀÎÇÏ¿© °¡¿ëÁßÀÌÁö ¾ÊÀº ¾ÆÀÌ³ëµå¿¡ ÆÄÀÏ ³Ö±â À§ÇÔ.
 
     unsigned mask;
-    while(1){ // ë¹ˆ inodeê°€ ìˆì„ë•Œ ê¹Œì§€ ë¬´í•œ ë°˜ë³µ
-    if (t < 33) // inode_1ì— ë¹ˆ inodeê°€ ìˆì„ ê²½ìš°
+    while(1){ // ºó inode°¡ ÀÖÀ»¶§ ±îÁö ¹«ÇÑ ¹İº¹
+    if (t < 33) // inode_1¿¡ ºó inode°¡ ÀÖÀ» °æ¿ì
     {
         mask = 1 << (t - 1);
-        if ((sb_ptr->inode_1 & mask) == 0) //ë¹ˆ ì•„ì´ë…¸ë“œê°€ ìˆì—ˆì„ ê²½ìš°
+        if ((sb_ptr->inode_1 & mask) == 0) //ºó ¾ÆÀÌ³ëµå°¡ ÀÖ¾úÀ» °æ¿ì
         {
-            sb_ptr->inode_1 = sb_ptr->inode_1 | 1;//ë¹ˆ ì•„ì´ë…¸ë“œ ì±„ìš°ê¸°
+            sb_ptr->inode_1 = sb_ptr->inode_1 | 1;//ºó ¾ÆÀÌ³ëµå Ã¤¿ì±â
             break;
         }
         t++;
     }
-    else if (t < 65) // inode_2ì— ë¹ˆ inodeê°€ ìˆì„ ê²½ìš°
+    else if (t < 65) // inode_2¿¡ ºó inode°¡ ÀÖÀ» °æ¿ì
     {
         mask = 1 << ((t- 32) - 1);
         if ((sb_ptr->inode_2 & mask) == 0)
@@ -451,7 +468,7 @@ int acc_inode()
         }
         t++;
     }
-    else if (t < 97) // inode_3ì— ë¹ˆ inodeê°€ ìˆì„ ê²½ìš°
+    else if (t < 97) // inode_3¿¡ ºó inode°¡ ÀÖÀ» °æ¿ì
     {
         mask = 1 << ((t - 64) - 1);
         if ((sb_ptr->inode_3 & mask) == 0)
@@ -461,7 +478,7 @@ int acc_inode()
         }
         t++;
     }
-    else // inode_4ì— ë¹ˆ inodeê°€ ìˆì„ ê²½ìš°
+    else // inode_4¿¡ ºó inode°¡ ÀÖÀ» °æ¿ì
     {
         mask = 1 << ((t - 96) - 1);
         if ((sb_ptr->inode_4 & mask) == 0)
@@ -476,11 +493,11 @@ int acc_inode()
 }
 
 /*
-ì´ë¦„    : acc_data í•¨ìˆ˜
-ì‘ì„±ì  : ì˜¤ê·œë¹ˆ
-ê¸°ëŠ¥    : ê°€ìš©ì¤‘ì´ì§€ ì•Šì€ datablock ë²ˆí˜¸ë¥¼ ê°€ì ¸ì˜¤ê³ , ê·¸ inodeë²ˆí˜¸ì— í•´ë‹¹í•˜ëŠ” ìŠˆí¼ë¸”ë¡ì„ 1ë¡œ ì±„ìš´ë‹¤.
-ë°›ëŠ”ê°’  : X
-ë¦¬í„´ê°’  : ê°€ìš©ì¤‘ì´ì§€ ì•Šì€ datablock ë²ˆí˜¸
+ÀÌ¸§    : acc_data ÇÔ¼ö
+ÀÛ¼ºÀÚ  : ¿À±Ôºó
+±â´É    : °¡¿ëÁßÀÌÁö ¾ÊÀº datablock ¹øÈ£¸¦ °¡Á®¿À°í, ±× inode¹øÈ£¿¡ ÇØ´çÇÏ´Â ½´ÆÛºí·ÏÀ» 1·Î Ã¤¿î´Ù.
+¹Ş´Â°ª  : X
+¸®ÅÏ°ª  : °¡¿ëÁßÀÌÁö ¾ÊÀº datablock ¹øÈ£
 */
 int acc_data()
 {
@@ -490,93 +507,93 @@ int acc_data()
     myfs = fopen("myfs", "rb");
     if (myfs == NULL)
     {
-        printf("acc_data() í•¨ìˆ˜ : íŒŒì¼ ì—´ê¸°ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.\n");
+        printf("acc_data() ÇÔ¼ö : ÆÄÀÏ ¿­±â¿¡ ½ÇÆĞÇß½À´Ï´Ù.\n");
         abort();
     }
 
     SUPERBLOCK *sb_ptr = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK));
     fseek(myfs, BOOT_BLOCK_SIZE+128, SEEK_SET);
-    fread(sb_ptr, sizeof(SUPERBLOCK), 1, myfs);//ì‚¬ìš©ì¤‘ì¸ ìŠˆí¼ë¸”ë¡ í™•ì¸í•˜ì—¬ ê°€ìš©ì¤‘ì´ì§€ ì•Šì€ ë°ì´í„°ë¸”ë¡ì— íŒŒì¼ ë„£ê¸° ìœ„í•¨.
+    fread(sb_ptr, sizeof(SUPERBLOCK), 1, myfs);//»ç¿ëÁßÀÎ ½´ÆÛºí·Ï È®ÀÎÇÏ¿© °¡¿ëÁßÀÌÁö ¾ÊÀº µ¥ÀÌÅÍºí·Ï¿¡ ÆÄÀÏ ³Ö±â À§ÇÔ.
 
     unsigned mask;
     while(1)
-    { // ë¹ˆ ë°ì´í„°ë¸”ë¡ì´ ìˆì„ë•Œ ê¹Œì§€ ë¬´í•œ ë°˜ë³µ
-    if (t < 33) // data_block_1ì— ë¹ˆ data_blockì´ ìˆì„ ê²½ìš°
+    { // ºó µ¥ÀÌÅÍºí·ÏÀÌ ÀÖÀ»¶§ ±îÁö ¹«ÇÑ ¹İº¹
+    if (t < 33) // data_block_1¿¡ ºó data_blockÀÌ ÀÖÀ» °æ¿ì
     {
         mask = 1 << (t - 1);
-        if ((sb_ptr->data_block_1 & mask) == 0) //ë¹ˆ ìŠˆí¼ë¸”ë¡ì´ ìˆì—ˆì„ ê²½ìš°
+        if ((sb_ptr->data_block_1 & mask) == 0) //ºó ½´ÆÛºí·ÏÀÌ ÀÖ¾úÀ» °æ¿ì
         {
-            sb_ptr->data_block_1 = sb_ptr->data_block_1 | 1;//ë¹ˆ ìŠˆí¼ë¸”ë¡ ì±„ìš°ê¸°
+            sb_ptr->data_block_1 = sb_ptr->data_block_1 | 1;//ºó ½´ÆÛºí·Ï Ã¤¿ì±â
             break;
         }
         t++;
     }
-    else if (t < 65) // data_block_2ì— ë¹ˆ data_blockì´ ìˆì„ ê²½ìš°
+    else if (t < 65) // data_block_2¿¡ ºó data_blockÀÌ ÀÖÀ» °æ¿ì
     {
         mask = 1 << (t - 1);
-        if ((sb_ptr->data_block_2 & mask) == 0) //ë¹ˆ ìŠˆí¼ë¸”ë¡ì´ ìˆì—ˆì„ ê²½ìš°
+        if ((sb_ptr->data_block_2 & mask) == 0) //ºó ½´ÆÛºí·ÏÀÌ ÀÖ¾úÀ» °æ¿ì
         {
-            sb_ptr->data_block_2 = sb_ptr->data_block_2 | 1;//ë¹ˆ ìŠˆí¼ë¸”ë¡ ì±„ìš°ê¸°
+            sb_ptr->data_block_2 = sb_ptr->data_block_2 | 1;//ºó ½´ÆÛºí·Ï Ã¤¿ì±â
             break;
         }
         t++;
     }
-    else if (t < 97) // data_block_3ì— ë¹ˆ data_blockì´ ìˆì„ ê²½ìš°
+    else if (t < 97) // data_block_3¿¡ ºó data_blockÀÌ ÀÖÀ» °æ¿ì
     {
         mask = 1 << (t - 1);
-        if ((sb_ptr->data_block_3 & mask) == 0) //ë¹ˆ ìŠˆí¼ë¸”ë¡ì´ ìˆì—ˆì„ ê²½ìš°
+        if ((sb_ptr->data_block_3 & mask) == 0) //ºó ½´ÆÛºí·ÏÀÌ ÀÖ¾úÀ» °æ¿ì
         {
-            sb_ptr->data_block_3 = sb_ptr->data_block_3 | 1;//ë¹ˆ ìŠˆí¼ë¸”ë¡ ì±„ìš°ê¸°
+            sb_ptr->data_block_3 = sb_ptr->data_block_3 | 1;//ºó ½´ÆÛºí·Ï Ã¤¿ì±â
             break;
         }
         t++;
     }
-    else if (t < 129) // data_block_4ì— ë¹ˆ data_blockì´ ìˆì„ ê²½ìš°
+    else if (t < 129) // data_block_4¿¡ ºó data_blockÀÌ ÀÖÀ» °æ¿ì
     {
         mask = 1 << (t - 1);
-        if ((sb_ptr->data_block_4 & mask) == 0) //ë¹ˆ ìŠˆí¼ë¸”ë¡ì´ ìˆì—ˆì„ ê²½ìš°
+        if ((sb_ptr->data_block_4 & mask) == 0) //ºó ½´ÆÛºí·ÏÀÌ ÀÖ¾úÀ» °æ¿ì
         {
-            sb_ptr->data_block_4 = sb_ptr->data_block_4 | 1;//ë¹ˆ ìŠˆí¼ë¸”ë¡ ì±„ìš°ê¸°
+            sb_ptr->data_block_4 = sb_ptr->data_block_4 | 1;//ºó ½´ÆÛºí·Ï Ã¤¿ì±â
             break;
         }
         t++;
     }
-    else if (t < 161) // data_block_5ì— ë¹ˆ data_blockì´ ìˆì„ ê²½ìš°
+    else if (t < 161) // data_block_5¿¡ ºó data_blockÀÌ ÀÖÀ» °æ¿ì
     {
         mask = 1 << (t - 1);
-        if ((sb_ptr->data_block_5 & mask) == 0) //ë¹ˆ ìŠˆí¼ë¸”ë¡ì´ ìˆì—ˆì„ ê²½ìš°
+        if ((sb_ptr->data_block_5 & mask) == 0) //ºó ½´ÆÛºí·ÏÀÌ ÀÖ¾úÀ» °æ¿ì
         {
-            sb_ptr->data_block_5 = sb_ptr->data_block_5 | 1;//ë¹ˆ ìŠˆí¼ë¸”ë¡ ì±„ìš°ê¸°
+            sb_ptr->data_block_5 = sb_ptr->data_block_5 | 1;//ºó ½´ÆÛºí·Ï Ã¤¿ì±â
             break;
         }
         t++;
     }
-    else if (t < 193) // data_block_6ì— ë¹ˆ data_blockì´ ìˆì„ ê²½ìš°
+    else if (t < 193) // data_block_6¿¡ ºó data_blockÀÌ ÀÖÀ» °æ¿ì
     {
         mask = 1 << (t - 1);
-        if ((sb_ptr->data_block_6 & mask) == 0) //ë¹ˆ ìŠˆí¼ë¸”ë¡ì´ ìˆì—ˆì„ ê²½ìš°
+        if ((sb_ptr->data_block_6 & mask) == 0) //ºó ½´ÆÛºí·ÏÀÌ ÀÖ¾úÀ» °æ¿ì
         {
-            sb_ptr->data_block_6 = sb_ptr->data_block_6 | 1;//ë¹ˆ ìŠˆí¼ë¸”ë¡ ì±„ìš°ê¸°
+            sb_ptr->data_block_6 = sb_ptr->data_block_6 | 1;//ºó ½´ÆÛºí·Ï Ã¤¿ì±â
             break;
         }
         t++;
     }
-    else if (t < 225) // data_block_7ì— ë¹ˆ data_blockì´ ìˆì„ ê²½ìš°
+    else if (t < 225) // data_block_7¿¡ ºó data_blockÀÌ ÀÖÀ» °æ¿ì
     {
         mask = 1 << (t - 1);
-        if ((sb_ptr->data_block_7 & mask) == 0) //ë¹ˆ ìŠˆí¼ë¸”ë¡ì´ ìˆì—ˆì„ ê²½ìš°
+        if ((sb_ptr->data_block_7 & mask) == 0) //ºó ½´ÆÛºí·ÏÀÌ ÀÖ¾úÀ» °æ¿ì
         {
-            sb_ptr->data_block_7 = sb_ptr->data_block_7 | 1;//ë¹ˆ ìŠˆí¼ë¸”ë¡ ì±„ìš°ê¸°
+            sb_ptr->data_block_7 = sb_ptr->data_block_7 | 1;//ºó ½´ÆÛºí·Ï Ã¤¿ì±â
             break;
         }
         t++;
     }
-    else // data_block_3ì— ë¹ˆ data_blockì´ ìˆì„ ê²½ìš°
+    else // data_block_3¿¡ ºó data_blockÀÌ ÀÖÀ» °æ¿ì
     {
         mask = 1 << (t - 1);
-        if ((sb_ptr->data_block_8 & mask) == 0) //ë¹ˆ ìŠˆí¼ë¸”ë¡ì´ ìˆì—ˆì„ ê²½ìš°
+        if ((sb_ptr->data_block_8 & mask) == 0) //ºó ½´ÆÛºí·ÏÀÌ ÀÖ¾úÀ» °æ¿ì
         {
-            sb_ptr->data_block_8 = sb_ptr->data_block_8 | 1;//ë¹ˆ ìŠˆí¼ë¸”ë¡ ì±„ìš°ê¸°
+            sb_ptr->data_block_8 = sb_ptr->data_block_8 | 1;//ºó ½´ÆÛºí·Ï Ã¤¿ì±â
             break;
         }
         t++;
@@ -584,4 +601,3 @@ int acc_data()
     }
     return t;
 }
-
