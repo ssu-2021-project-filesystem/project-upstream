@@ -233,14 +233,14 @@ void mycpto (const char* source_file, const char* dest_file  )
 
     if(source_file ==NULL || dest_file == NULL)
     {
-        printf("오류 : 인자가 부족합니다");
+        printf("오류 : 인자가 부족합니다\n");
         return;
     }
 
     myfs = fopen("myfs", "rb");
     if ((ofp = fopen(dest_file, "wb")) == NULL)
     {
-        printf("오류 : 열지 못했습니다.");
+        printf("오류 : 열지 못했습니다.\n");
         return;
     }
 
