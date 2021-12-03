@@ -20,13 +20,14 @@ int mytree_dir_layer = 0;
 리턴값  : X
 */
 void mypwd(void)
-{
+{   
     DIR_LIST *tmp_ptr = front_dir_list_ptr;
 
     if (tmp_ptr == NULL)
     {
         printf("pwd를 위한 linked list가 존재하지 않습니다.\n");
-        abort();
+
+        return;
     }
 
     int first = 0;
@@ -35,6 +36,7 @@ void mypwd(void)
     {
         printf("%s", tmp_ptr->name);
 
+        //노드 이동
         if (tmp_ptr->next_ptr == NULL)
         {
             break;
@@ -44,6 +46,7 @@ void mypwd(void)
             tmp_ptr = tmp_ptr->next_ptr;
         }
 
+        //출력
         if (first == 0)
         {
             first++;
@@ -803,6 +806,48 @@ char *current_dir_find(int inode, int high_inode, FILE *myfs)
 */
 void mymkfs(void)
 {
+    //pwd linked list가 존재하는 경우, 삭제
+    if(front_dir_list_ptr != NULL)
+    {
+        //노드 전부 제거하기
+        DIR_LIST *tmp_delete_ptr; //지울 노드를 가리킬 포인터
+        DIR_LIST *tmp_delete_back_ptr; //지울 노드의 전 노드를 가리킬 포인터
+        
+        while(1)
+        {
+            tmp_delete_ptr = front_dir_list_ptr;
+            tmp_delete_back_ptr = NULL;
+
+            //제일 마지막 노드로 이동
+            while(tmp_delete_ptr->next_ptr != NULL)
+            {
+                tmp_delete_back_ptr = tmp_delete_ptr;
+                tmp_delete_ptr = tmp_delete_ptr->next_ptr;
+            }
+
+            //노드 제거, 종료
+            if(tmp_delete_back_ptr == NULL) //노드가 하나 뿐인 경우(root인 경우)
+            {
+                free(tmp_delete_ptr);
+
+                break;
+            }
+            else
+            {
+                tmp_delete_back_ptr->next_ptr = NULL;
+                free(tmp_delete_ptr);
+            }
+        }
+    }
+
+    //pwd linked list 생성
+    front_dir_list_ptr = (DIR_LIST *)malloc(sizeof(DIR_LIST));
+    front_dir_list_ptr->inode = 1;
+    front_dir_list_ptr->name = (char *)malloc(sizeof(char) * 8);
+    strcpy(front_dir_list_ptr->name, "/");
+    front_dir_list_ptr->next_ptr = NULL;
+    rear_dir_list_ptr = front_dir_list_ptr;
+
     //myfs 파일 존재 여부 확인
     int exist; //파일이 존재하지 않는 경우 0, 존재하는 경우 1
     FILE *myfs_exist;
