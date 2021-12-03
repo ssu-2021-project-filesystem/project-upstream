@@ -231,8 +231,10 @@ void mycpfrom (char* source_file, char* dest_file )
       size_F++;
       putc(c,myfs);
     }
-    putc(EOF,myfs);
-    
+    char *minusone = (char *)malloc(sizeof(char));
+    *minusone = -1;
+    fwrite(minusone, sizeof(char), 1, myfs);
+
     file_inode_tmp_ptr -> size = size_F;
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (*fileinode - 1), SEEK_SET);
     fwrite(file_inode_tmp_ptr,sizeof(INODE),1,myfs);
