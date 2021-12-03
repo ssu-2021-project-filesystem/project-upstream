@@ -246,6 +246,8 @@ void mycat(char *givenname)
             printf("%c", *datablock_ptr);
         }
     }
+
+    printf("\n");
     
     free(presenti_data);
     free(filename);
