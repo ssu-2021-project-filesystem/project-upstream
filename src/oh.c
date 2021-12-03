@@ -41,6 +41,7 @@ void mycd (char *path)
             else
             {                
                 tmp_delete_back_ptr->next_ptr = NULL;
+                free(tmp_delete_ptr->name);
                 free(tmp_delete_ptr);
             }
         }
@@ -74,6 +75,7 @@ void mycd (char *path)
             else
             {
                 tmp_delete_back_ptr->next_ptr = NULL;
+                free(tmp_delete_ptr->name);
                 free(tmp_delete_ptr);
             }
         }
@@ -128,6 +130,7 @@ void mycd (char *path)
             }
 
             //마지막 노드 제거
+            free(tmp_delete_ptr->name);
             free(tmp_delete_ptr);
             tmp_delete_back_ptr->next_ptr = NULL;
             rear_dir_list_ptr = tmp_delete_back_ptr;

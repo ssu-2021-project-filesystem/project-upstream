@@ -828,6 +828,7 @@ void mymkfs(void)
             //노드 제거, 종료
             if(tmp_delete_back_ptr == NULL) //노드가 하나 뿐인 경우(root인 경우)
             {
+                free(tmp_delete_ptr->name);
                 free(tmp_delete_ptr);
 
                 break;
@@ -835,6 +836,7 @@ void mymkfs(void)
             else
             {
                 tmp_delete_back_ptr->next_ptr = NULL;
+                free(tmp_delete_ptr->name);
                 free(tmp_delete_ptr);
             }
         }
