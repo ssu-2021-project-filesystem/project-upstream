@@ -111,6 +111,7 @@ void mystate(void);
 void mytouch(char *givenname);
 
 //jin
+int stringtoint(char *byte);
 void myls(const char *ptr);
 void mycat(char *givename);
 void myshowfile(char *startbyte, char *endbyte, char *givenname);
