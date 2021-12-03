@@ -267,9 +267,20 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
     //문자열 정수로 바꾸기
     int intstartbyte = stringtoint(startbyte);
     int intendbyte = stringtoint(endbyte);
-    printf("%d\n%d\n", intstartbyte, intendbyte);
 
     //예외처리
+    if(startbyte == NULL)
+    {
+        printf("시작바이트값이 필요합니다\n");
+        return;
+    }
+
+    if(endbyte == NULL)
+    {
+        printf("종료바이트값이 필요합니다\n");
+        return;
+    }
+    
     if (givenname == NULL)
     {
         printf("파일명이 필요합니다.\n");
