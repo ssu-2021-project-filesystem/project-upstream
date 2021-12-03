@@ -291,11 +291,18 @@ void mycpto (const char* source_file, const char* dest_file  )
         }
     }
     fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((file_inode_tmp_ptr -> dir_1))),SEEK_SET);//복사할 파일에 이동
-    while((d = getc(myfs))!=EOF)
+    for(int i = 0; i < file_inode_tmp_ptr-> size; i++)
     {
-        putc(d,ofp);
+        if((d = getc(myfs)) == EOF)
+        {
+            break;
+        }
+        else
+        {
+            putc(d, ofp);
+        }
     }
-    
+
     free(file_inode_tmp_ptr);
     free(fileinode);
     fclose(ofp);
