@@ -324,7 +324,7 @@ void mycp(char* source_file, char* dest_file  )
         strcat(tmp_data_string,d);
     }
     sprintf(d,"%d",-1);
-    printf("\n");
+    printf(" ");
     strcat(tmp_data_string,d);
 
     rewind(myfs);
