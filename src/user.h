@@ -112,14 +112,14 @@ void mytouch(char *givenname);
 
 //jin
 void myls(const char *ptr);
-void mycat(char *file);
-void myshowfile(char *num1, char *num2, char *file);
+void mycat(char *givename);
+void myshowfile(char *startbyte, char *endbyte, char *givenname);
 
 //oh
 void mycd (char* path);
 void mycpto (const char* source_file, const char* dest_file);
 void mycpfrom (char* source_file, char* dest_file);
-void mycp(const char* source_file, const char* dest_file);
+void mycp( char* source_file,  char* dest_file);
 void myrm(const char* file);
 char* prtpwd();
 int cntfound();
