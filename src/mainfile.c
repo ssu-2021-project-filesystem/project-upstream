@@ -21,7 +21,8 @@ int main(void)
     //pwd linked list 생성
     front_dir_list_ptr = (DIR_LIST *)malloc(sizeof(DIR_LIST));
     front_dir_list_ptr->inode = 1;
-    front_dir_list_ptr->name = "/";
+    front_dir_list_ptr->name = (char *)malloc(sizeof(char) * 8);
+    strcpy(front_dir_list_ptr->name, "/");
     front_dir_list_ptr->next_ptr = NULL;
     rear_dir_list_ptr = front_dir_list_ptr;
 
@@ -107,6 +108,8 @@ void shell(void)
             com_ptr_char_num++;
         }
         *(*(com_sep_ptr + com_ptr_num) + com_ptr_char_num) = 0;
+
+        rewind(stdin); //버퍼 비우기
 
         //입력 데이터 초기화, 전처리
         char **com_tmp_ptr = (char **)malloc(sizeof(char *) * COM_SEP_NUM); //4개의 포인터를 가리킬 수 있는 이차원 포인터
