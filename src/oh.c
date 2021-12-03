@@ -236,68 +236,57 @@ void mycpto (const char* source_file, const char* dest_file  )
         printf("오류 : 인자가 부족합니다");
         return;
     }
+    char *tmp_file_string_ptr = (char *)malloc(sizeof(char) * 8); //디렉토리의 datablock에서 추출한 파일명을 가리킬 포인터
+    int *tmp_inode_ptr = (int *)malloc(sizeof(int)); //디렉토리의 datablock에서 추출한 inode 번호를 가리킬 포인터
+    INODE *inode_ptr = (INODE *)malloc(sizeof(INODE));// inode 포인터
 
     myfs = fopen("myfs", "rb");
-    if ((ofp = fopen(dest_file, "wb")) == NULL)
-    {
-        printf("오류 : 열지 못했습니다.");
-        return;
-    }
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (rear_dir_list_ptr -> inode - 1)), SEEK_SET);
+    fread(inode_ptr, sizeof(INODE), 1, myfs);
 
-    //현재 디렉터리의 아이노드 받기
-    int presentinode = rear_dir_list_ptr-> inode; //현재 디렉터리의 아이노드번호
-    INODE *presenti_data = (INODE *)malloc(sizeof(INODE)); //현재 디렉터리의 아이노드 구조체
-    INODE *file_inode_tmp_ptr = (INODE *)malloc(sizeof(INODE));//받아올 파일의 아이노드 구조체
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(presentinode - 1), SEEK_SET);
-    fread(presenti_data, sizeof(INODE), 1, myfs);
-    //함수인자의 파일명과 데이터블록의 파일명 비교
-    int n = presenti_data-> size/12; //for문을 위한 변수지정
-    char *filename = (char *)malloc(sizeof(char) * 8); //파일명을 읽기위한 변수
-    int *fileinode = (int *)malloc(sizeof(int));
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data-> dir_1)), SEEK_SET);
-    unsigned count;
-    int none_tmp = 0;
-    for(int i=0; i<n; i++)
-    {
-        fread(filename, 8, 1, myfs);
-        fread(fileinode, sizeof(int), 1, myfs);
-        if(strcmp(source_file, filename) == 0)
-        {
-            count = i;
-            break;
+    tmp_datablock = (int)(inode_ptr->dir_1 + 1);
+    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+ INODE_LIST_SIZE +  (256 * (tmp_datablock - 1)),SEEK_SET);//현재 디렉토리의 데이터블록 앞으로 포인터 이동
+    fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs); // 포인터로 파일명 확인
+
+    while(strcmp(tmp_file_string_ptr, source_file))
+    {//찾는 파일과 확인한 파일의 이름이 같지 않다면
+        if((c = getc(myfs)) != EOF)
+        {//myfs파일의 끝을 확인
+            fseek(myfs, -1, SEEK_CUR);
+            fseek(myfs,sizeof(int),SEEK_CUR);//현재 포인터 위치로부터 int형 크기만큼 이동
+            fread(tmp_file_string_ptr, sizeof(char) * 8, 1, myfs);
         }
         else
         {
-            none_tmp++;
+        printf("오류 : %s 파일이 없습니다.\n", source_file); //파일명을 현재 디렉토리에서 못찾으면 오류 띄우기
+        return;
         }
     }
-    if (none_tmp == n) //해당 이름의 파일이 존재하지 않는 경우
-    {
-        printf("해당 이름의 파일이 존재하지 않습니다.\n");
 
+    fread(tmp_inode_ptr, sizeof(int), 1, myfs);
+    inode =*tmp_inode_ptr;
+
+    if ((ofp = fopen(dest_file, "wb")) == NULL)
+    {
+        printf("오류 : %s 파일을 열 수 없습니다. \n", dest_file);
         return;
     }
-    else //해당 이름의 파일이 존재하는 경우
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + (sizeof(INODE) * (inode - 1)), SEEK_SET);
+    fread(inode_ptr, sizeof(INODE), 1, myfs);
+
+    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+INODE_LIST_SIZE +(DATA_BLOCK_SIZE*((inode_ptr->dir_1)- 1)),SEEK_SET);//새로운 파일에 복사
+    while(i != DATA_BLOCK_SIZE)
     {
-        //해당 파일이 일반 파일인지 검사
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (*fileinode - 1), SEEK_SET);
-        fread(file_inode_tmp_ptr, sizeof(INODE), 1, myfs);
-        if (file_inode_tmp_ptr->type == 0) //해당 파일이 디렉터리인 경우
-        {
-            printf("해당 파일은 일반 파일이 아닙니다.\n");
-            free(presenti_data);
-            free(filename);
-            return;
-        }
-    }
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((file_inode_tmp_ptr -> dir_1))),SEEK_SET);//복사할 파일에 이동
-    while((d = getc(myfs))!=EOF)
-    {
+        d = getc(myfs);
         putc(d,ofp);
+        i++;
     }
+    putc(EOF,ofp);
     
-    free(file_inode_tmp_ptr);
-    free(fileinode);
+    free(tmp_file_string_ptr);
+    free(tmp_inode_ptr);
+    free(inode_ptr);
     fclose(ofp);
     fclose(myfs);
 
