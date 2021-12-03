@@ -802,7 +802,7 @@ char *current_dir_find(int inode, int high_inode, FILE *myfs)
 작성자  : 이준혁
 기능    : 파일시스템을 만들고, 여러 값들을 초기화한다.
 받는값  : X
-리턴값  : X
+리턴값  : X 
 */
 void mymkfs(void)
 {

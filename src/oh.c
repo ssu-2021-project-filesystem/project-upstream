@@ -14,7 +14,7 @@ void mycd (char *path)
     DIR_LIST *tmp_delete_back_ptr; //지울 노드의 전 노드를 가리킬 포인터
 
     //경로가 입력되지 않은 경우(root로 이동)
-    if(path == NULL)
+    if((path == NULL) || (strcmp(path, "/") == 0))
     {
         //노드 전부 제거하기
         while(1)
@@ -46,7 +46,7 @@ void mycd (char *path)
         }
     }
     
-    //맨 앞 문자열의 종류 확인
+    //path 데이터 전처리(맨 앞 문자열의 종류 확인)
     if(*path == '/') //맨 앞이 /인 경우
     {
         //노드 전부 제거하기(현재 위치 /)
@@ -81,19 +81,15 @@ void mycd (char *path)
         //path에서 / 제거하기
         path++;
     }
-    else if((*path == '.') && (*(path + 1) != '.')) //맨 앞이 .인 경우 (..은 아니어야 함)
+    else if((*path == '.') && (*(path + 1) == '/')) //맨 앞이 .인 경우 (..은 아니어야 함)
     {
-        //예외처리
-        if(*(path + 1) != '/')
-        {
-            printf("잘못된 경로입니다.\n");
-
-            return;
-        }
-
         //노드 그대로 사용하기(현재 위치 .)
         //path에서 ./ 제거하기
         path += 2;
+    }
+    else // /과 ./ 둘 다 아닌 경우에는 path를 그대로 사용
+    {
+        ;
     }
 
     //처리된 path로 노드 수정하기 -> ..이면 노드 하나 제거, ..이 아니면 노드 추가
@@ -121,6 +117,14 @@ void mycd (char *path)
             {
                 tmp_delete_back_ptr = tmp_delete_ptr;
                 tmp_delete_ptr = tmp_delete_ptr->next_ptr;
+            }
+
+            //예외처리(노드가 하나 남은 경우)
+            if(tmp_delete_back_ptr == NULL)
+            {
+                printf("잘못된 경로입니다.(root의 부모 디렉토리는 존재하지 않음.)\n");
+
+                return;
             }
 
             //마지막 노드 제거
@@ -153,7 +157,14 @@ void mycd (char *path)
                 }
             }
 
-            //예외처리
+            //예외처리(.인 경우)
+            if(strcmp(nm_ptr, ".") == 0)
+            {
+                printf("잘못된 경로입니다.(.은 현재 디렉토리를 나타냄.)\n");
+
+                return;
+            }
+
             if (count == dir_file_num) //현재 디렉토리에 해당 파일이 없는 경우
             {
                 printf("잘못된 경로입니다.(경로에 존재하지 않는 파일명이 포함됨.)\n");
@@ -162,28 +173,30 @@ void mycd (char *path)
             }
             else //현재 디렉토리에 해당 파일이 있는 경우
             {
-                //해당 파일이 일반 파일인 경우
+                //파일 종류 검사
                 INODE *file_inode_tmp_ptr = (INODE *)malloc(sizeof(INODE));
                 fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20 * (*inodenumber - 1), SEEK_SET);
                 fread(file_inode_tmp_ptr, sizeof(INODE), 1, myfs);
 
-                if(file_inode_tmp_ptr->type == 1) //일반 파일인 경우
+                if(file_inode_tmp_ptr->type == 1) //해당 파일이 일반 파일인 경우
                 {
                     printf("잘못된 경로입니다.(경로에 일반 파일명이 포함됨.)\n");
 
                     return;
                 }
+                else //해당 파일이 디렉토리인 경우
+                {
+                    //파일명, inode 번호를 사용해서 새 노드 생성
+                    rear_dir_list_ptr->next_ptr = (DIR_LIST *)malloc(sizeof(DIR_LIST));
+                    rear_dir_list_ptr = rear_dir_list_ptr->next_ptr;
+                    rear_dir_list_ptr->inode = *inodenumber;
+                    rear_dir_list_ptr->name = (char *)malloc(sizeof(char) * 8);
+                    strcpy(rear_dir_list_ptr->name, nm_ptr);
+                    rear_dir_list_ptr->next_ptr = NULL;
+                }
 
                 free(file_inode_tmp_ptr);
             }
-
-            //파일명, inode 번호를 사용해서 새 노드 생성
-            rear_dir_list_ptr->next_ptr = (DIR_LIST *)malloc(sizeof(DIR_LIST));
-            rear_dir_list_ptr = rear_dir_list_ptr->next_ptr;
-            rear_dir_list_ptr->inode = *inodenumber;
-            rear_dir_list_ptr->name = (char *)malloc(sizeof(char) * 8);
-            strcpy(rear_dir_list_ptr->name, nm_ptr);
-            rear_dir_list_ptr->next_ptr = NULL;
         }
     }
     while((nm_ptr = strtok(NULL, "/")) != NULL);
