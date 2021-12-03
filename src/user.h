@@ -119,7 +119,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname);
 void mycd (char* path);
 void mycpto (const char* source_file, const char* dest_file);
 void mycpfrom (char* source_file, char* dest_file);
-void mycp( char* source_file,  char* dest_file);
+void mycp(const char* source_file, const char* dest_file);
 void myrm(const char* file);
 char* prtpwd();
 int cntfound();

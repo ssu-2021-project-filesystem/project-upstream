@@ -157,7 +157,7 @@ void mycpfrom (char* source_file, char* dest_file )
 {
     FILE *ifp;
     FILE *myfs;
-    int c,size_F;
+    int c,size_F = 0;
     time_t Time;
     struct tm* TimeInfo;
 
@@ -224,7 +224,7 @@ void mycpfrom (char* source_file, char* dest_file )
             return;
         }
     }
-    
+
     fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((file_inode_tmp_ptr -> dir_1))),SEEK_SET);//새로운 파일에 복사
     while ((c = getc(ifp)) != EOF)
     {
@@ -386,10 +386,10 @@ void mycp(char* source_file, char* dest_file  )
 
 /*
 이름    : myrm 함수
-작성자  : 오규빈
+작성자  : 양인석
 기능    : 파일을 삭제하는 명령어
 받는값  : 파일명
-리턴값  : 리턴값
+리턴값  : x
 */
 
 void myrm(const char* file)
