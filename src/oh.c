@@ -423,132 +423,28 @@ void mycpfrom (char* source_file, char* dest_file )
 
 void mycp(char* source_file, char* dest_file  )
 {
-    FILE *myfs;
-    int c;
-    int size_F = 0;
-    int k = 0;
-    int inode = 1;
-    char tmp;
-    char* d;
+    FILE*myfs;
+    FILE*fp;
 
     if(source_file ==NULL || dest_file == NULL)
     {
         printf("오류 : 인자가 부족합니다");
         return;
-    }
+    }//인자가 부족한 경우 예외처리
+
+    if(strcmp(source_file, dest_file) == 0)
+    {
+        printf("오류 : 인자가 같습니다");
+        return;
+    }//인자가 같을경우 예외처리
 
     myfs = fopen("myfs", "rb+");
-    int presentinode = rear_dir_list_ptr-> inode; //현재 디렉터리의 아이노드번호
-    INODE *presenti_data = (INODE *)malloc(sizeof(INODE)); //현재 디렉터리의 아이노드 구조체
-    INODE *file_inode_tmp_ptr = (INODE *)malloc(sizeof(INODE));//받아올 파일의 아이노드 구조체
-    char *tmp_data_string = (char *)malloc(sizeof(DATA_BLOCK_SIZE));//파일에서 받아올 문자열
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(presentinode - 1), SEEK_SET);
-    fread(presenti_data, sizeof(INODE), 1, myfs);
-    
-    //함수인자의 소스_파일명과 데이터블록의 파일명 비교
-    int n = presenti_data-> size/12; //for문을 위한 변수지정
-    char *filename = (char *)malloc(sizeof(char) * 8); //파일명을 읽기위한 변수
-    int *fileinode = (int *)malloc(sizeof(int));
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data-> dir_1)), SEEK_SET);
-    unsigned count;
-    int none_tmp = 0;
-    for(int i=0; i<n; i++)
-    {
-        fread(filename, 8, 1, myfs);
-        fread(fileinode, sizeof(int), 1, myfs);
-        if(strcmp(source_file, filename) == 0)
-        {
-            count = i;
-            break;
-        }
-        else
-        {
-            none_tmp++;
-        }
-    }
-    if (none_tmp == n) //해당 이름의 파일이 존재하지 않는 경우
-    {
-        printf("해당 이름의 파일이 존재하지 않습니다.\n");
-        return;
-    }
-    else //해당 이름의 파일이 존재하는 경우
-    {
-        //해당 파일이 일반 파일인지 검사
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (*fileinode - 1), SEEK_SET);
-        fread(file_inode_tmp_ptr, sizeof(INODE), 1, myfs);
-        if (file_inode_tmp_ptr->type == 0) //해당 파일이 디렉터리인 경우
-        {
-            printf("해당 파일은 일반 파일이 아닙니다.\n");
-
-            return;
-        }
-    }
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((file_inode_tmp_ptr -> dir_1))),SEEK_SET);//새로운 파일에 복사
-    while((tmp = getc(myfs)) != EOF)
-    {
-        sprintf(d,"%d",tmp);
-        strcat(tmp_data_string,d);
-    }
-    sprintf(d,"%d",-1);
-    printf(" ");
-    strcat(tmp_data_string,d);
-
-    rewind(myfs);
-    mytouch(dest_file);
-
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(presentinode - 1), SEEK_SET);
-    fread(presenti_data, sizeof(INODE), 1, myfs);
-    //출력 파일의 파일명과 데이터블록의 파일명 비교
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data-> dir_1)), SEEK_SET);
-    none_tmp = 0;
-    for(int i=0; i<n; i++)
-    {
-        fread(filename, 8, 1, myfs);
-        fread(fileinode, sizeof(int), 1, myfs);
-        if(strcmp(dest_file, filename) == 0)
-        {
-            count = i;
-            break;
-        }
-        else
-        {
-            none_tmp++;
-        }
-    }
-
-    if (none_tmp == n) //해당 이름의 파일이 존재하지 않는 경우
-    {
-        printf("해당 이름의 파일이 존재하지 않습니다.\n");
-
-        return;
-    }
-    else //해당 이름의 파일이 존재하는 경우
-    {
-        //해당 파일이 일반 파일인지 검사
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (*fileinode - 1), SEEK_SET);
-        fread(file_inode_tmp_ptr, sizeof(INODE), 1, myfs);
-        if (file_inode_tmp_ptr->type == 0) //해당 파일이 디렉터리인 경우
-        {
-            printf("해당 파일은 일반 파일이 아닙니다.\n");
-
-            free(presenti_data);
-            free(filename);
-
-            return;
-        }
-    }
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((file_inode_tmp_ptr -> dir_1))),SEEK_SET);//새로운 파일에 복사
-    fwrite(tmp_data_string,sizeof(DATA_BLOCK_SIZE),1,myfs);
-
-    file_inode_tmp_ptr -> size = size_F;
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (*fileinode - 1), SEEK_SET);
-    fwrite(file_inode_tmp_ptr,sizeof(INODE),1,myfs);
-
-    free(fileinode);
-    free(file_inode_tmp_ptr);
-    free(tmp_data_string);
+    fp = fopen("tmp","wb");
+    mycpto(source_file,"tmp");
+    mycpfrom("tmp",dest_file);
     fclose(myfs);
-
+    fclose(fp);
+    system("rm tmp");
     return;
 }
 
