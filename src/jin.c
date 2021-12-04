@@ -56,7 +56,6 @@ void myls(const char* givenname)
         int *inodenumber = (int *)malloc(sizeof(int));
 
         int dir_file_num = presenti_data->size / (8 + sizeof(int));
-        printf("%d\n", dir_file_num);
 
         for (int i = 0; i < dir_file_num; i++)
         {
@@ -302,6 +301,8 @@ void mycat(char *givenname)
         free(indirect_num);
     }
 
+    printf("\n");
+
     free(presenti_data);
     free(filename);
     free(inodenumber);
@@ -488,6 +489,8 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
             printf("%c", *datablock_ptr);
         }
     }
+
+    printf("\n");
 
     free(indirect_num);
     free(presenti_data);
