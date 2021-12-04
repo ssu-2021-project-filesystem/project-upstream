@@ -862,6 +862,7 @@ void myrm(const char* file)
     free(filename);
     free(fileinode);
     free(i_data);
+    fclose(myfs);
     return;
 }
 /*
