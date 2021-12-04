@@ -293,7 +293,7 @@ void mycat(char *givenname)
         int *indirect_num = (int *)malloc(sizeof(int));
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
         fread(indirect_num, sizeof(int), 1, myfs);
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num - 1)), SEEK_SET);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num)), SEEK_SET);
         for (int i = (256 * 8) + 1; i <= i_data-> size; i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);
@@ -444,7 +444,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
         }
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
         fread(indirect_num, sizeof(int), 1, myfs);
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num - 1)), SEEK_SET);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num)), SEEK_SET);
         for (int i = (256 * 8) + 1; i <= intendbyte; i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);
@@ -470,7 +470,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
         }
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
         fread(indirect_num, sizeof(int), 1, myfs);
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num - 1)), SEEK_SET);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num)), SEEK_SET);
         for (int i = (256 * 8) + 1; i <= intendbyte; i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);
@@ -481,7 +481,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
     {
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
         fread(indirect_num, sizeof(int), 1, myfs);
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num - 1)), SEEK_SET);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num)), SEEK_SET);
         for (int i = intstartbyte; i <= intendbyte; i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);
