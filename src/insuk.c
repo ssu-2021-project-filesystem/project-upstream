@@ -629,7 +629,7 @@ void mytouch(char *givenname)
         i_data3->minute = t->tm_min;
         i_data3->second = t->tm_sec;
         i_data3->size = 0;
-        i_data3->dir_1 = savedbnumber - 1;
+        i_data3->dir_1 = (unsigned)(savedbnumber - 1);
         i_data3->dir_2 = 0;
         i_data3->dir_3 = 0;
         i_data3->dir_4 = 0;

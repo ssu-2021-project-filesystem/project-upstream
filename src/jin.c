@@ -95,6 +95,10 @@ void myls(const char* givenname)
             //파일명
             printf("%s\n", filename);
         }
+    free(presenti_data);
+    free(filei_data);
+    free(filename);
+    free(inodenumber);
     }
     else
     {
@@ -167,7 +171,13 @@ void myls(const char* givenname)
             //파일명
             printf("%s\n", filename);
         }
+        free(presenti_data);
+        free(filei_data);
+        free(filename);
+        free(inodenumber);
+        free(diri_data);
     }
+    fclose(myfs);
 }
 /*
 이름    : mycat 함수
@@ -244,7 +254,7 @@ void mycat(char *givenname)
     if (i_data->size < 256)
     {
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_1)), SEEK_SET);
-        for (int i = 0; i < i_data->size; i++)
+        for (int i = 1; i <= i_data->size; i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);
             printf("%c", *datablock_ptr);
@@ -262,15 +272,7 @@ void mycat(char *givenname)
         for (int i = 257; i <= i_data->size; i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);
-
-            if (*datablock_ptr == -1)
-            {
-                break;
-            }
-            else
-            {
-                printf("%c", *datablock_ptr);
-            }
+            printf("%c", *datablock_ptr);
         }
     }
     else
@@ -288,6 +290,16 @@ void mycat(char *givenname)
             printf("%c", *datablock_ptr);
         }
         //인다이렉트형식으로 나머지출력
+        int *indirect_num = (int *)malloc(sizeof(int));
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
+        fread(indirect_num, sizeof(int), 1, myfs);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num - 1)), SEEK_SET);
+        for (int i = (256 * 8) + 1; i <= i_data-> size; i++)
+        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
+            printf("%c", *datablock_ptr);
+        }
+        free(indirect_num);
     }
 
     free(presenti_data);
@@ -410,7 +422,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
             printf("%c", *datablock_ptr);
         }
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2)), SEEK_SET);
-        for (int i = 1; i <= (intendbyte - 256); i++)
+        for (int i = 257; i <= intendbyte; i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);
             printf("%c", *datablock_ptr);
@@ -425,7 +437,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
             printf("%c", *datablock_ptr);
         }
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2)), SEEK_SET);
-        for (int i = 1; i <= (256 * 7); i++)
+        for (int i = 257; i <= (256 * 8); i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);
             printf("%c", *datablock_ptr);
@@ -433,7 +445,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
         fread(indirect_num, sizeof(int), 1, myfs);
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num - 1)), SEEK_SET);
-        for (int i = 1; i <= (intendbyte - (256 * 8)); i++)
+        for (int i = (256 * 8) + 1; i <= intendbyte; i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);
             printf("%c", *datablock_ptr);
@@ -442,7 +454,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
     else if(intstartbyte > 256 && intstartbyte <= (256 * 8) && intendbyte > 256 && intendbyte <= (256 * 8))
     {
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2)), SEEK_SET);
-        for (int i = (intstartbyte - 256); i <= (intendbyte - 256); i++)
+        for (int i = intstartbyte; i <= intendbyte; i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);
             printf("%c", *datablock_ptr);
@@ -451,7 +463,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
     else if(intstartbyte > 256 && intstartbyte <= (256 * 8) && intendbyte > (256 * 8))//인다이렉트 사용
     {
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2)), SEEK_SET);
-        for (int i = (intstartbyte - 256); i <= (256 * 7); i++)
+        for (int i = intstartbyte; i <= (256 * 8); i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);
             printf("%c", *datablock_ptr);
@@ -459,7 +471,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
         fread(indirect_num, sizeof(int), 1, myfs);
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num - 1)), SEEK_SET);
-        for (int i = 1; i <= (intendbyte - (256 * 8)); i++)
+        for (int i = (256 * 8) + 1; i <= intendbyte; i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);
             printf("%c", *datablock_ptr);
@@ -470,13 +482,14 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
         fread(indirect_num, sizeof(int), 1, myfs);
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num - 1)), SEEK_SET);
-        for (int i = (intstartbyte - (256 * 8)); i <= (intendbyte - (256 * 8)); i++)
+        for (int i = intstartbyte; i <= intendbyte; i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);
             printf("%c", *datablock_ptr);
         }
     }
 
+    free(indirect_num);
     free(presenti_data);
     free(filename);
     free(inodenumber);
