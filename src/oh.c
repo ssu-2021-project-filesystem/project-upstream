@@ -438,12 +438,10 @@ void mycp(char* source_file, char* dest_file  )
         return;
     }//인자가 같을경우 예외처리
 
-    myfs = fopen("myfs", "rb+");
     fp = fopen("tmp","wb");
+    fclose(fp);
     mycpto(source_file,"tmp");
     mycpfrom("tmp",dest_file);
-    fclose(myfs);
-    fclose(fp);
     system("rm tmp");
     return;
 }
