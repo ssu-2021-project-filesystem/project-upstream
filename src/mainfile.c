@@ -56,24 +56,25 @@ void shell(void)
         //myfs 파일 존재여부 확인
         int exist = 0; //파일이 존재하지 않는 경우 0, 존재하는 경우 1 저장
         FILE *myfs_exist;
-        if((myfs_exist = fopen("myfs", "rb")) != NULL) //파일이 존재하지 않는 경우
+        if((myfs_exist = fopen("myfs", "rb")) != NULL) //파일이 존재하는 경우
         {
             exist = 1;
 
             fclose(myfs_exist);
         }
+        else
+        {
+            mymkfs();
+
+            printf("\n");
+
+            exist = 1;
+        }
 
         //쉘 출력
-        if(exist == 0) //myfs 파일이 존재하지 않는 경우
-        {
-            printf("$ ");
-        }
-        else //myfs 파일이 존재하는 경우
-        {
-            printf("[");
-            mypwd(); //mypwd() 함수로 경로 출력
-            printf(" ]$ ");
-        }
+        printf("[");
+        mypwd(); //mypwd() 함수로 경로 출력
+        printf(" ]$ ");
 
         //포인터가 가리키는 메모리 공간 초기화
         for(int i = 0; i < COM_SEP_NUM; i++)
