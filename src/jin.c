@@ -288,10 +288,11 @@ void mycat(char *givenname)
             fread(datablock_ptr, sizeof(char), 1, myfs);
             printf("%c", *datablock_ptr);
         }
+
         //인다이렉트형식으로 나머지출력
-        int *indirect_num = (int *)malloc(sizeof(int));
+        char *indirect_num = (char *)malloc(sizeof(char));
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
-        fread(indirect_num, sizeof(int), 1, myfs);
+        fread(indirect_num, sizeof(char), 1, myfs);
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num)), SEEK_SET);
         for (int i = (256 * 8) + 1; i <= i_data-> size; i++)
         {

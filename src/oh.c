@@ -890,13 +890,12 @@ void myrm(const char* file)
         }
         if(i_data->size > 2048)
         {
-            int *indirect_num = (int *)malloc(sizeof(int));
+            char *indirect_num = (char *)malloc(sizeof(char));
             reverse_change_bit(i_data-> indir, sb_data);
             fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
             for (int i = 0; i < 8; i++)
             {
-                fread(indirect_num, sizeof(int), 1, myfs);
-                printf("%d\n", *indirect_num);
+                fread(indirect_num, sizeof(char), 1, myfs);
                 reverse_change_bit(*indirect_num, sb_data);
             }
         }
