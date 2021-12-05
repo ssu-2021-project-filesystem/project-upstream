@@ -94,6 +94,10 @@ void myls(const char* givenname)
             //파일명
             printf("%s\n", filename);
         }
+    free(presenti_data);
+    free(filei_data);
+    free(filename);
+    free(inodenumber);
     }
     else
     {
@@ -166,7 +170,13 @@ void myls(const char* givenname)
             //파일명
             printf("%s\n", filename);
         }
+        free(presenti_data);
+        free(filei_data);
+        free(filename);
+        free(inodenumber);
+        free(diri_data);
     }
+    fclose(myfs);
 }
 /*
 이름    : mycat 함수
@@ -191,6 +201,8 @@ void mycat(char *givenname)
         return;
     }
 
+    
+
     FILE *myfs;
     myfs = fopen("myfs", "rb+");
     
@@ -225,6 +237,12 @@ void mycat(char *givenname)
             count++;
         }
     }
+
+    if(count == dir_file_num)
+    {
+        printf("일치하는 파일명이 없습니다.\n");
+        return;
+    }
     //읽을 파일의 아이노드 받기
     INODE *i_data = (INODE *)malloc(sizeof(INODE));
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20 * (saveinumber - 1), SEEK_SET);
@@ -232,28 +250,65 @@ void mycat(char *givenname)
 
     //이진파일내용 읽어서 출력
     char *datablock_ptr = (char *)malloc(sizeof(char));
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data-> dir_1)), SEEK_SET);
-    for(int i = 0; i < i_data-> size; i++)
+    if (i_data->size < 256)
     {
-        fread(datablock_ptr, sizeof(char), 1, myfs);
-
-        if(*datablock_ptr == -1)
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_1)), SEEK_SET);
+        for (int i = 1; i <= i_data->size; i++)
         {
-            break;
-        }
-        else
-        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
             printf("%c", *datablock_ptr);
         }
     }
+    else if(i_data->size >=256 && i_data->size < 256*8)
+    {
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_1)), SEEK_SET);
+        for (int i = 1; i <= 256; i++)
+        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
+            printf("%c", *datablock_ptr);
+        }
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2)), SEEK_SET);
+        for (int i = 257; i <= i_data->size; i++)
+        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
+            printf("%c", *datablock_ptr);
+        }
+    }
+    else
+    {
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_1)), SEEK_SET);
+        for (int i = 1; i <= 256; i++)
+        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
+            printf("%c", *datablock_ptr);
+        }
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2)), SEEK_SET);
+        for (int i = 257; i <= (256*8); i++)
+        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
+            printf("%c", *datablock_ptr);
+        }
+        //인다이렉트형식으로 나머지출력
+        int *indirect_num = (int *)malloc(sizeof(int));
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
+        fread(indirect_num, sizeof(int), 1, myfs);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num)), SEEK_SET);
+        for (int i = (256 * 8) + 1; i <= i_data-> size; i++)
+        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
+            printf("%c", *datablock_ptr);
+        }
+        free(indirect_num);
+    }
 
     printf("\n");
-    
+
     free(presenti_data);
     free(filename);
     free(inodenumber);
     free(i_data);
     free(datablock_ptr);
+    fclose(myfs);
     return;
 }
 
@@ -266,10 +321,6 @@ void mycat(char *givenname)
 */
 void myshowfile(char *startbyte, char *endbyte, char *givenname)
 {
-    //문자열 정수로 바꾸기
-    int intstartbyte = stringtoint(startbyte);
-    int intendbyte = stringtoint(endbyte);
-
     //예외처리
     if(startbyte == NULL)
     {
@@ -282,7 +333,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
         printf("종료바이트값이 필요합니다\n");
         return;
     }
-    
+
     if (givenname == NULL)
     {
         printf("파일명이 필요합니다.\n");
@@ -296,6 +347,17 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
         return;
     }
 
+    //문자열 정수로 바꾸기
+    int intstartbyte = stringtoint(startbyte);
+    int intendbyte = stringtoint(endbyte);
+
+    //예외처리
+    if(intstartbyte >= intendbyte)
+    {
+        printf("입력된 시작 바이트값이 너무 큽니다\n");
+        return;
+    }
+
     FILE *myfs;
     myfs = fopen("myfs", "rb+");
     
@@ -330,32 +392,112 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
             count++;
         }
     }
+    if(count == dir_file_num)
+    {
+        printf("일치하는 파일명이 없습니다.\n");
+        return;
+    }
     //읽을 파일의 아이노드 받기
     INODE *i_data = (INODE *)malloc(sizeof(INODE));
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20 * (saveinumber - 1), SEEK_SET);
     fread(i_data, sizeof(INODE), 1, myfs);
 
     //특정부분 읽은 후 출력
+    int *indirect_num = (int *)malloc(sizeof(int));
     char *datablock_ptr = (char *)malloc(sizeof(char));
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data-> dir_1)) + (intstartbyte - 1), SEEK_SET);
-    for(int i = intstartbyte; i < intendbyte; i++)
+    if (intstartbyte <= 256 && intendbyte <= 256)
     {
-        fread(datablock_ptr, sizeof(char), 1, myfs);
-
-        if(*datablock_ptr == -1)
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_1)) + (intstartbyte - 1), SEEK_SET);
+        for (int i = intstartbyte; i <= intendbyte; i++)
         {
-            break;
-        }
-        else
-        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
             printf("%c", *datablock_ptr);
         }
     }
-    
+    else if(intstartbyte <= 256 && intendbyte > 256 && intendbyte <= (256 * 8))
+    {
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_1)) + (intstartbyte - 1), SEEK_SET);
+        for (int i = intstartbyte; i <= 256; i++)
+        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
+            printf("%c", *datablock_ptr);
+        }
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2)), SEEK_SET);
+        for (int i = 257; i <= intendbyte; i++)
+        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
+            printf("%c", *datablock_ptr);
+        }
+    }
+    else if(intstartbyte <= 256 && intendbyte > (256 * 8))//인다이렉트 사용
+    {
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_1)) + (intstartbyte - 1), SEEK_SET);
+        for (int i = intstartbyte; i <= 256; i++)
+        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
+            printf("%c", *datablock_ptr);
+        }
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2)), SEEK_SET);
+        for (int i = 257; i <= (256 * 8); i++)
+        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
+            printf("%c", *datablock_ptr);
+        }
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
+        fread(indirect_num, sizeof(int), 1, myfs);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num)), SEEK_SET);
+        for (int i = (256 * 8) + 1; i <= intendbyte; i++)
+        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
+            printf("%c", *datablock_ptr);
+        }
+    }
+    else if(intstartbyte > 256 && intstartbyte <= (256 * 8) && intendbyte > 256 && intendbyte <= (256 * 8))
+    {
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2)), SEEK_SET);
+        for (int i = intstartbyte; i <= intendbyte; i++)
+        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
+            printf("%c", *datablock_ptr);
+        }
+    }
+    else if(intstartbyte > 256 && intstartbyte <= (256 * 8) && intendbyte > (256 * 8))//인다이렉트 사용
+    {
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2)), SEEK_SET);
+        for (int i = intstartbyte; i <= (256 * 8); i++)
+        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
+            printf("%c", *datablock_ptr);
+        }
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
+        fread(indirect_num, sizeof(int), 1, myfs);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num)), SEEK_SET);
+        for (int i = (256 * 8) + 1; i <= intendbyte; i++)
+        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
+            printf("%c", *datablock_ptr);
+        }
+    }
+    else if(intstartbyte > (256 * 8) && intendbyte > (256 * 8))//인다이렉트사용
+    {
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
+        fread(indirect_num, sizeof(int), 1, myfs);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num)), SEEK_SET);
+        for (int i = intstartbyte; i <= intendbyte; i++)
+        {
+            fread(datablock_ptr, sizeof(char), 1, myfs);
+            printf("%c", *datablock_ptr);
+        }
+    }
+
+    printf("\n");
+
+    free(indirect_num);
     free(presenti_data);
     free(filename);
     free(inodenumber);
     free(i_data);
     free(datablock_ptr);
+    fclose(myfs);
     return;
 }

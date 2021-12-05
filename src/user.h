@@ -84,10 +84,10 @@ extern DIR_LIST *rear_dir_list_ptr;
 
 
 //함수 원형 선언
-//mainfile
+//mainfile.c
 void shell(void);
 
-//jhun
+//jhun.c
 void mypwd(void);
 void myinode(const char *ptr);
 void mydatablock(const char *ptr);
@@ -101,7 +101,7 @@ void mymkfs(void);
 void mymv(char *file_1, char *file_2);
 void mv_to_dir(FILE *myfs, int file_1_inode, int file_2_inode, char *file_1_name, int count);
 
-//insuk
+//insuk.c
 int checkbit(int number, unsigned block);
 void change_superblock(int saveinumber, int savedbnumber, SUPERBLOCK *sb_data);
 void bit_print(unsigned a);
@@ -110,13 +110,13 @@ void myrmdir(char *givenname);
 void mystate(void);
 void mytouch(char *givenname);
 
-//jin
+//jin.c
 int stringtoint(char *byte);
 void myls(const char *ptr);
 void mycat(char *givename);
 void myshowfile(char *startbyte, char *endbyte, char *givenname);
 
-//oh
+//oh.c
 void mycd (char* path);
 void mycpto (const char* source_file, const char* dest_file);
 void mycpfrom (char* source_file, char* dest_file);

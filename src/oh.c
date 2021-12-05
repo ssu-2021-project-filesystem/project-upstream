@@ -223,45 +223,50 @@ void mycd (char *path)
 */
 void mycpto (const char* source_file, const char* dest_file  )
 {
+    //변수 선언
     FILE *ofp;
     FILE *myfs;
-    int c,d;
+    int c;
+    char d;
     int test = 0;
     int i = 0;
     int inode = 1;
     int tmp_datablock;
 
+    int presentinode = rear_dir_list_ptr-> inode; //현재 디렉터리의 아이노드 번호를 저장할 변수
+    INODE *presenti_data = (INODE *)malloc(sizeof(INODE)); //현재 디렉터리의 inode 정보를 저장할 구조체를 가리킬 포인터
+    INODE *file_inode_tmp_ptr = (INODE *)malloc(sizeof(INODE));//받아올 파일의 inode 정보를 저장할 구조체를 가리킬 포인터
+
+    //인자 예외처리
     if(source_file ==NULL || dest_file == NULL)
     {
         printf("오류 : 인자가 부족합니다\n");
         return;
     }
 
+    //파일 열기
     myfs = fopen("myfs", "rb");
-    if ((ofp = fopen(dest_file, "wb")) == NULL)
-    {
-        printf("오류 : 열지 못했습니다.\n");
-        return;
-    }
 
-    //현재 디렉터리의 아이노드 받기
-    int presentinode = rear_dir_list_ptr-> inode; //현재 디렉터리의 아이노드번호
-    INODE *presenti_data = (INODE *)malloc(sizeof(INODE)); //현재 디렉터리의 아이노드 구조체
-    INODE *file_inode_tmp_ptr = (INODE *)malloc(sizeof(INODE));//받아올 파일의 아이노드 구조체
+    //현재 디렉터리의 아이노드 정보 받기
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(presentinode - 1), SEEK_SET);
     fread(presenti_data, sizeof(INODE), 1, myfs);
+
     //함수인자의 파일명과 데이터블록의 파일명 비교
-    int n = presenti_data-> size/12; //for문을 위한 변수지정
+    int n = presenti_data->size / (8 + sizeof(int)); //for문을 위한 변수지정
     char *filename = (char *)malloc(sizeof(char) * 8); //파일명을 읽기위한 변수
     int *fileinode = (int *)malloc(sizeof(int));
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data-> dir_1)), SEEK_SET);
+
     unsigned count;
     int none_tmp = 0;
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data-> dir_1)), SEEK_SET); //현재 디렉토리의 datablock으로 이동
+
     for(int i=0; i<n; i++)
     {
         fread(filename, 8, 1, myfs);
         fread(fileinode, sizeof(int), 1, myfs);
-        if(strcmp(source_file, filename) == 0)
+
+        if(strcmp(source_file, filename) == 0) //파일 목록에 같은 이름의 파일이 있는 경우
         {
             count = i;
             break;
@@ -271,6 +276,7 @@ void mycpto (const char* source_file, const char* dest_file  )
             none_tmp++;
         }
     }
+
     if (none_tmp == n) //해당 이름의 파일이 존재하지 않는 경우
     {
         printf("해당 이름의 파일이 존재하지 않습니다.\n");
@@ -282,6 +288,7 @@ void mycpto (const char* source_file, const char* dest_file  )
         //해당 파일이 일반 파일인지 검사
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (*fileinode - 1), SEEK_SET);
         fread(file_inode_tmp_ptr, sizeof(INODE), 1, myfs);
+
         if (file_inode_tmp_ptr->type == 0) //해당 파일이 디렉터리인 경우
         {
             printf("해당 파일은 일반 파일이 아닙니다.\n");
@@ -290,21 +297,76 @@ void mycpto (const char* source_file, const char* dest_file  )
             return;
         }
     }
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((file_inode_tmp_ptr -> dir_1))),SEEK_SET);//복사할 파일에 이동
-    for(int i = 0; i < file_inode_tmp_ptr-> size; i++)
+
+    //호스트 컴퓨터의 파일 열기
+    if ((ofp = fopen(dest_file, "w")) == NULL)
     {
-        if((d = getc(myfs)) == EOF)
+        printf("오류 : 파일을 열지 못했습니다.\n");
+        return;
+    }
+
+    //datablock 읽어서 호스트 컴퓨터 파일에 작성
+    int datablock_num; //datablock 번호를 저장할 변수(저장된 정수 + 1 값임)
+
+    for(int print_loop = 0; print_loop < 8; print_loop++)
+    {
+        if((file_inode_tmp_ptr->size) > (256 * print_loop))
         {
-            break;
+            datablock_num = *((char *)file_inode_tmp_ptr + 11 + print_loop);
+
+            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + DATA_BLOCK_SIZE * datablock_num, SEEK_SET);
+
+            for(int print_loop_2 = 0; print_loop_2 < 256; print_loop_2++)
+            {
+                fread(&d, sizeof(char), 1, myfs);
+
+                if(d == -1)
+                {
+                    break;
+                }
+                else
+                {
+                    putc(d, ofp);
+                }
+            }
         }
-        else
+    }
+
+    //single indirect를 사용하는 경우
+    char *indir_dir_num = (char *)malloc(sizeof(char)); //indir를 위한 datablock 번호를 저장할 공간을 가리킬 포인터
+
+    if(file_inode_tmp_ptr->size > (256 * 8)) //direct만으로 저장할 수 있는 크기보다 크기가 큰 경우
+    {
+        for(int print_loop = 0; print_loop < 8; print_loop++)
         {
-            putc(d, ofp);
+            if((file_inode_tmp_ptr->size - (256 * 8)) > (256 * print_loop))
+            {
+                //indir의 datablock으로 이동해서 datablock 번호 검사
+                fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * file_inode_tmp_ptr->indir) + print_loop, SEEK_SET);
+                fread(indir_dir_num, sizeof(char), 1, myfs);
+                fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + DATA_BLOCK_SIZE * (*indir_dir_num), SEEK_SET);
+
+                for(int print_loop_2 = 0; print_loop_2 < 256; print_loop_2++)
+                {
+                    fread(&d, sizeof(char), 1, myfs);
+
+                    if(d == -1)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        putc(d, ofp);
+                    }
+                }
+            }
         }
     }
 
     free(file_inode_tmp_ptr);
     free(fileinode);
+    free(indir_dir_num);
+
     fclose(ofp);
     fclose(myfs);
 
@@ -318,95 +380,274 @@ void mycpto (const char* source_file, const char* dest_file  )
 받는값  : 파일명 1,2
 리턴값  : 리턴값
 */
-
 void mycpfrom (char* source_file, char* dest_file )
 {
+    //변수 선언
     FILE *ifp;
     FILE *myfs;
-    int c,size_F = 0;
+    int c, size_F = 0;
+    char d;
     time_t Time;
     struct tm* TimeInfo;
 
-    if(source_file ==NULL || dest_file == NULL)
-    {
-        printf("오류 : 인자가 부족합니다");
-        return;
-    }
-    if ((ifp = fopen(source_file, "rb")) == NULL)
-    {
-        printf("오류 : %s 파일을 열 수 없습니다. \n", source_file);
-        return;
-    }
-    myfs = fopen("myfs", "rb+");
-    mytouch(dest_file); // dest_file의 이름을 가지는 파일 생성
-
-    //현재 디렉터리의 아이노드 받기
     int presentinode = rear_dir_list_ptr-> inode; //현재 디렉터리의 아이노드번호
     INODE *presenti_data = (INODE *)malloc(sizeof(INODE)); //현재 디렉터리의 아이노드 구조체
     INODE *file_inode_tmp_ptr = (INODE *)malloc(sizeof(INODE));//받아올 파일의 아이노드 구조체
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20*(presentinode - 1), SEEK_SET);
-    fread(presenti_data, sizeof(INODE), 1, myfs);
-    
-    //함수인자의 파일명과 데이터블록의 파일명 비교
-    int n = presenti_data-> size/12; //for문을 위한 변수지정
-    char *filename = (char *)malloc(sizeof(char) * 8); //파일명을 읽기위한 변수
-    int *fileinode = (int *)malloc(sizeof(int));
-    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data-> dir_1)), SEEK_SET);
-    unsigned count;
-    int none_tmp = 0;
-    for(int i=0; i<n; i++)
-    {
-        fread(filename, 8, 1, myfs);
-        fread(fileinode, sizeof(int), 1, myfs);
-        if(strcmp(dest_file, filename) == 0)
-        {
-            count = i;
-            break;
-        }
-        else
-        {
-            none_tmp++;
-        }
-    }
 
-    if (none_tmp == n) //해당 이름의 파일이 존재하지 않는 경우
+    //인자 예외처리
+    if(source_file == NULL || dest_file == NULL)
     {
-        printf("해당 이름의 파일이 존재하지 않습니다.\n");
+        printf("오류 : 인자가 부족합니다\n");
+
+        free(presenti_data);
+        free(file_inode_tmp_ptr);
 
         return;
     }
-    else //해당 이름의 파일이 존재하는 경우
+
+    //호스트 컴퓨터의 파일 열기
+    if ((ifp = fopen(source_file, "r")) == NULL)
     {
-        //해당 파일이 일반 파일인지 검사
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (*fileinode - 1), SEEK_SET);
-        fread(file_inode_tmp_ptr, sizeof(INODE), 1, myfs);
-        if (file_inode_tmp_ptr->type == 0) //해당 파일이 디렉터리인 경우
+        printf("오류 : %s 파일이 존재하지 않거나 열 수 없습니다.\n", source_file);
+        
+        free(presenti_data);
+        free(file_inode_tmp_ptr);
+
+        return;
+    }
+
+    //파일 열기
+    myfs = fopen("myfs", "rb+");
+
+    //현재 디렉터리의 아이노드 받기
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20 * (presentinode - 1), SEEK_SET);
+    fread(presenti_data, sizeof(INODE), 1, myfs);
+    
+    //함수인자의 파일명과 데이터블록의 파일명 비교
+    int n = presenti_data->size / (8 + sizeof(int)); //for문을 위한 변수지정
+    char *filename = (char *)malloc(sizeof(char) * 8); //파일명을 읽기위한 변수
+    int *fileinode = (int *)malloc(sizeof(int));
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data->dir_1)), SEEK_SET);
+    for(int i = 0; i < n; i++)
+    {
+        fread(filename, 8, 1, myfs);
+        fread(fileinode, sizeof(int), 1, myfs);
+
+        if(strcmp(dest_file, filename) == 0)
         {
-            printf("해당 파일은 일반 파일이 아닙니다.\n");
+            printf("해당 이름의 파일이 존재합니다.\n");
 
             free(presenti_data);
+            free(file_inode_tmp_ptr);
             free(filename);
+            free(fileinode);
 
             return;
         }
     }
+    
+    //파일 닫기
+    fclose(myfs);
 
-    fseek(myfs, BOOT_BLOCK_SIZE+SUPER_BLOCK_SIZE+(sizeof(INODE)*128)+(DATA_BLOCK_SIZE*((file_inode_tmp_ptr -> dir_1))),SEEK_SET);//새로운 파일에 복사
-    while ((c = getc(ifp)) != EOF)
+    //dest_file의 이름을 가지는 파일 생성
+    mytouch(dest_file);
+
+    //파일 열기
+    myfs = fopen("myfs", "rb+");
+
+    //해당 파일의 inode 정보 얻기
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + 20 * (presentinode - 1), SEEK_SET);
+    fread(presenti_data, sizeof(INODE), 1, myfs);
+    n = presenti_data->size / (8 + sizeof(int));
+
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (presenti_data->dir_1)), SEEK_SET);    
+    for(int i = 0; i < n; i++)
     {
-      size_F++;
-      putc(c,myfs);
+        fread(filename, 8, 1, myfs);
+        fread(fileinode, sizeof(int), 1, myfs);
+
+        if(strcmp(dest_file, filename) == 0)
+        {
+            break;
+        }
     }
-    char *minusone = (char *)malloc(sizeof(char));
-    *minusone = -1;
-    fwrite(minusone, sizeof(char), 1, myfs);
 
-    file_inode_tmp_ptr -> size = size_F;
     fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (*fileinode - 1), SEEK_SET);
-    fwrite(file_inode_tmp_ptr,sizeof(INODE),1,myfs);
+    fread(file_inode_tmp_ptr, sizeof(INODE), 1, myfs);
 
-    free(fileinode);
+    //호스트 컴퓨터의 파일 크기 알아내기.
+    int host_file_size;
+    fseek(ifp, 0, SEEK_END);
+    host_file_size = ftell(ifp);
+    rewind(ifp);
+
+    //호스트 컴퓨터 파일 읽어서 datablock에 작성
+    char minousone = -1; //파일 끝에 저장할 -1을 저장할 변수
+    int savedbnumber = 0; //datablock 번호를 저장할 변수
+    SUPERBLOCK *sb_data = (SUPERBLOCK *)malloc(sizeof(SUPERBLOCK));
+
+    for(int print_loop = 0; print_loop < 8; print_loop++)
+    {
+        if(host_file_size > (256 * print_loop))
+        {
+            //datablock 할당하기
+            if(print_loop == 0) //맨 처음 루프인 경우->이미 datablock 하나가 할당되어 있음
+            {
+                savedbnumber = file_inode_tmp_ptr->dir_1 + 1;
+            }
+            else //처음 루프가 아닌 경우->새로운 datablock 할당 필요
+            {
+                //새 datablock 할당하기
+                fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
+                fread(sb_data, sizeof(SUPERBLOCK), 1, myfs);
+                
+                savedbnumber = 0;
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_1);
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_2);
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_3);
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_4);
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_5);
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_6);
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_7);
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_8);
+                savedbnumber++;
+
+                //datablock에 반영하기
+                change_superblock(0, savedbnumber, sb_data);
+
+                fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
+                fwrite(sb_data, sizeof(SUPERBLOCK), 1, myfs);
+
+                //inode에 datablock 번호 반영하기
+                *((char *)file_inode_tmp_ptr + 11 + print_loop) = (unsigned)(savedbnumber - 1);
+            }
+
+            //datablock에 내용 작성하기
+            for(int print_loop_2 = 0; print_loop_2 < 256; print_loop_2++)
+            {
+                d = getc(ifp);
+
+                fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (savedbnumber - 1)) + print_loop_2, SEEK_SET);
+
+                if(d == EOF)
+                {
+                    fwrite(&minousone, sizeof(char), 1, myfs);
+
+                    break;
+                }
+                else
+                {
+                    fwrite(&d, sizeof(char), 1, myfs);
+                }
+            }
+        }
+    }
+
+    //single indirect를 사용하는 경우
+    char *indir_dir_num = (char *)malloc(sizeof(char)); //indir를 위한 datablock 번호를 저장할 공간을 가리킬 포인터
+    unsigned char indir_db_tmp; //indir에 저장할 datablock 번호를 임시 저장할 변수
+
+    if(host_file_size > (256 * 8)) //direct만으로 저장할 수 있는 크기보다 크기가 큰 경우
+    {
+        //indir datablock 할당하기
+        fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
+        fread(sb_data, sizeof(SUPERBLOCK), 1, myfs);
+        
+        savedbnumber = 0;
+        savedbnumber = checkbit(savedbnumber, sb_data->data_block_1);
+        savedbnumber = checkbit(savedbnumber, sb_data->data_block_2);
+        savedbnumber = checkbit(savedbnumber, sb_data->data_block_3);
+        savedbnumber = checkbit(savedbnumber, sb_data->data_block_4);
+        savedbnumber = checkbit(savedbnumber, sb_data->data_block_5);
+        savedbnumber = checkbit(savedbnumber, sb_data->data_block_6);
+        savedbnumber = checkbit(savedbnumber, sb_data->data_block_7);
+        savedbnumber = checkbit(savedbnumber, sb_data->data_block_8);
+        savedbnumber++;
+
+        change_superblock(0, savedbnumber, sb_data);
+
+        fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
+        fwrite(sb_data, sizeof(SUPERBLOCK), 1, myfs);
+
+        //inode에 datablock 번호 반영하기
+        file_inode_tmp_ptr->indir = (unsigned)(savedbnumber - 1);
+
+        //indir datablock 기본값 작성하기
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + DATA_BLOCK_SIZE * (savedbnumber - 1), SEEK_SET);
+        char zero_db_value = 0;
+        for(int loop_zero = 0; loop_zero < 8; loop_zero++)
+        {
+            fwrite(&zero_db_value, sizeof(char), 1, myfs);
+        }
+        fwrite(&minousone, sizeof(char), 1, myfs);
+
+        //파일 크기 검사해서 datablock에 작성하기
+        for(int print_loop = 0; print_loop < 8; print_loop++)
+        {
+            if((host_file_size - (256 * 8)) > (256 * print_loop))
+            {
+                //indir의 datablock에 작성할 datablock 할당하기
+                fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
+                fread(sb_data, sizeof(SUPERBLOCK), 1, myfs);
+                
+                savedbnumber = 0;
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_1);
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_2);
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_3);
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_4);
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_5);
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_6);
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_7);
+                savedbnumber = checkbit(savedbnumber, sb_data->data_block_8);
+                savedbnumber++;
+
+                //datablock에 반영하기
+                change_superblock(0, savedbnumber, sb_data);
+
+                fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
+                fwrite(sb_data, sizeof(SUPERBLOCK), 1, myfs);
+
+                //indir의 datablock에 새로 할당한 datablock 번호 반영하기
+                indir_db_tmp = savedbnumber - 1;
+                fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + DATA_BLOCK_SIZE * (file_inode_tmp_ptr->indir) + print_loop, SEEK_SET);
+                fwrite(&indir_db_tmp, sizeof(char), 1, myfs);
+
+                //할당한 datablock에 내용 작성하기
+                fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + DATA_BLOCK_SIZE * (savedbnumber - 1), SEEK_SET);
+                for(int print_loop_2 = 0; print_loop_2 < 256; print_loop_2++)
+                {
+                    d = getc(ifp);
+
+                    if(d == EOF)
+                    {
+                        fwrite(&minousone, sizeof(char), 1, myfs);
+
+                        break;
+                    }
+                    else
+                    {
+                        fwrite(&d, sizeof(char), 1, myfs);
+                    }
+                }
+            }
+        }
+    }
+
+    //inode의 size 갱신하기
+    file_inode_tmp_ptr -> size = host_file_size;
+    
+    //inode 반영하기
+    fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + sizeof(INODE) * (*fileinode - 1), SEEK_SET);
+    fwrite(file_inode_tmp_ptr, sizeof(INODE), 1, myfs);
+
+    free(presenti_data);
     free(file_inode_tmp_ptr);
+    free(filename);
+    free(fileinode);
+    free(sb_data);
+    free(indir_dir_num);
+
     fclose(ifp);
     fclose(myfs);
 
@@ -423,7 +664,6 @@ void mycpfrom (char* source_file, char* dest_file )
 
 void mycp(char* source_file, char* dest_file  )
 {
-    FILE*myfs;
     FILE*fp;
 
     if(source_file ==NULL || dest_file == NULL)
@@ -438,13 +678,14 @@ void mycp(char* source_file, char* dest_file  )
         return;
     }//인자가 같을경우 예외처리
 
-    myfs = fopen("myfs", "rb+");
     fp = fopen("tmp","wb");
+    fclose(fp);
+    
     mycpto(source_file,"tmp");
     mycpfrom("tmp",dest_file);
-    fclose(myfs);
-    fclose(fp);
+    
     system("rm tmp");
+
     return;
 }
 

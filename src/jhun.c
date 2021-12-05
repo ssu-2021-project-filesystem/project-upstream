@@ -247,7 +247,7 @@ void myinode(const char *ptr)
     }
 
     // single indirect
-    printf("간접 블록 번호 : %d\n", inode_data_ptr->indir);
+    printf("간접 블록 번호 : %d\n", inode_data_ptr->indir + 1);
 
     //동적 메모리 할당 공간 반납
     free(inode_data_ptr);
