@@ -454,7 +454,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
     }
     else if(intstartbyte > 256 && intstartbyte <= (256 * 8) && intendbyte > 256 && intendbyte <= (256 * 8))
     {
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2)), SEEK_SET);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2) + (intstartbyte - 1)), SEEK_SET);
         for (int i = intstartbyte; i <= intendbyte; i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);
@@ -463,7 +463,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
     }
     else if(intstartbyte > 256 && intstartbyte <= (256 * 8) && intendbyte > (256 * 8))//인다이렉트 사용
     {
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2)), SEEK_SET);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2) + (intstartbyte - 1)), SEEK_SET);
         for (int i = intstartbyte; i <= (256 * 8); i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);
@@ -482,7 +482,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
     {
         fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
         fread(indirect_num, sizeof(int), 1, myfs);
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num)), SEEK_SET);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num) + (intstartbyte - 1)), SEEK_SET);
         for (int i = intstartbyte; i <= intendbyte; i++)
         {
             fread(datablock_ptr, sizeof(char), 1, myfs);

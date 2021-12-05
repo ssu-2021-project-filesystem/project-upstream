@@ -1,4 +1,55 @@
 #include "user.h"
+/*
+이름    : reverse_change_bit 함수
+작성자  : 양인석
+기능    : 슈퍼블록을 1->0으로 변환
+받는값  : 데이터블록 번호, 슈퍼블록 구조체
+리턴값  : X
+*/
+void reverse_change_bit(int dir_num, SUPERBLOCK *sb_data)
+{
+    unsigned mask1 = 1 << 31;
+        if(dir_num >= 1 && dir_num <32)
+        {
+            mask1 >>= (dir_num);
+            sb_data-> data_block_1 = sb_data-> data_block_1 ^ mask1;
+        }
+        else if(dir_num >= 32 && dir_num <64)
+        {
+            mask1 >>= (dir_num - 32);
+            sb_data-> data_block_2 = sb_data-> data_block_2 ^ mask1;
+        }
+        else if(dir_num >= 64 && dir_num <96)
+        {
+            mask1 >>= (dir_num - 64);
+            sb_data-> data_block_3 = sb_data-> data_block_3 ^ mask1;
+        }
+        else if(dir_num >= 96 && dir_num <128)
+        {
+            mask1 >>= (dir_num - 96);
+            sb_data-> data_block_4 = sb_data-> data_block_4 ^ mask1;
+        }
+        else if(dir_num >= 128 && dir_num <160)
+        {
+            mask1 >>= (dir_num - 128);
+            sb_data-> data_block_5 = sb_data-> data_block_5 ^ mask1;
+        }
+        else if(dir_num >= 160 && dir_num <192)
+        {
+            mask1 >>= (dir_num - 160);
+            sb_data-> data_block_6 = sb_data-> data_block_6 ^ mask1;
+        }
+        else if(dir_num >= 192 && dir_num <224)
+        {
+            mask1 >>= (dir_num - 192);
+            sb_data-> data_block_7 = sb_data-> data_block_7 ^ mask1;
+        }
+        else if(dir_num >= 224 && dir_num <256)
+        {
+            mask1 >>= (dir_num - 224);
+            sb_data-> data_block_8 = sb_data-> data_block_8 ^ mask1;
+        }
+}
 
 
 /*
@@ -807,47 +858,49 @@ void myrm(const char* file)
             mask >>= (saveinumber - 97);
             sb_data-> inode_4 = sb_data-> inode_4 ^ mask;
         }
-        unsigned mask1 = 1 << 31;
-        if(i_data-> dir_1 >= 0 && i_data-> dir_1 <32)
+        
+        reverse_change_bit(i_data-> dir_1, sb_data);
+        if(i_data-> size > 256)
         {
-            mask1 >>= (i_data-> dir_1);
-            sb_data-> data_block_1 = sb_data-> data_block_1 ^ mask1;
+            reverse_change_bit(i_data-> dir_2, sb_data);
         }
-        else if(i_data-> dir_1 >= 32 && i_data-> dir_1 <64)
+        if(i_data-> size > 512)
         {
-            mask1 >>= (i_data-> dir_1 - 32);
-            sb_data-> data_block_2 = sb_data-> data_block_2 ^ mask1;
+            reverse_change_bit(i_data-> dir_3, sb_data);
         }
-        else if(i_data-> dir_1 >= 64 && i_data-> dir_1 <96)
+        if(i_data-> size > 768)
         {
-            mask1 >>= (i_data-> dir_1 - 64);
-            sb_data-> data_block_3 = sb_data-> data_block_3 ^ mask1;
+            reverse_change_bit(i_data-> dir_4, sb_data);
         }
-        else if(i_data-> dir_1 >= 96 && i_data-> dir_1 <128)
+        if(i_data-> size > 1024)
         {
-            mask1 >>= (i_data-> dir_1 - 96);
-            sb_data-> data_block_4 = sb_data-> data_block_4 ^ mask1;
+            reverse_change_bit(i_data-> dir_5, sb_data);
         }
-        else if(i_data-> dir_1 >= 128 && i_data-> dir_1 <160)
+        if(i_data-> size > 1280)
         {
-            mask1 >>= (i_data-> dir_1 - 128);
-            sb_data-> data_block_5 = sb_data-> data_block_5 ^ mask1;
+            reverse_change_bit(i_data-> dir_6, sb_data);
         }
-        else if(i_data-> dir_1 >= 160 && i_data-> dir_1 <192)
+        if(i_data-> size > 1536)
         {
-            mask1 >>= (i_data-> dir_1 - 160);
-            sb_data-> data_block_6 = sb_data-> data_block_6 ^ mask1;
+            reverse_change_bit(i_data-> dir_7, sb_data);
         }
-        else if(i_data-> dir_1 >= 192 && i_data-> dir_1 <224)
+        if(i_data-> size > 1729)
         {
-            mask1 >>= (i_data-> dir_1 - 192);
-            sb_data-> data_block_7 = sb_data-> data_block_7 ^ mask1;
+            reverse_change_bit(i_data-> dir_8, sb_data);
         }
-        else if(i_data-> dir_1 >= 224 && i_data-> dir_1 <256)
+        if(i_data->size > 2048)
         {
-            mask1 >>= (i_data-> dir_1 - 224);
-            sb_data-> data_block_8 = sb_data-> data_block_8 ^ mask1;
+            int *indirect_num = (int *)malloc(sizeof(int));
+            reverse_change_bit(i_data-> indir, sb_data);
+            fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
+            for (int i = 0; i < 8; i++)
+            {
+                fread(indirect_num, sizeof(int), 1, myfs);
+                printf("%d\n", *indirect_num);
+                reverse_change_bit(*indirect_num, sb_data);
+            }
         }
+
         fseek(myfs, BOOT_BLOCK_SIZE, SEEK_SET);
         fwrite(sb_data, sizeof(SUPERBLOCK), 1, myfs);
         free(sb_data);
