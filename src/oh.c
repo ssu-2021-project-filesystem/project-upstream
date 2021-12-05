@@ -14,7 +14,7 @@ void mycd (char *path)
     DIR_LIST *tmp_delete_back_ptr; //지울 노드의 전 노드를 가리킬 포인터
 
     //경로가 입력되지 않은 경우(root로 이동)
-    if((path == NULL) || (strcmp(path, "/") == 0))
+    if((path == NULL) || (strcmp(path, "/") == 0) || ((*path) == 0))
     {
         //노드 전부 제거하기
         while(1)
@@ -621,6 +621,7 @@ void myrm(const char* file)
     free(filename);
     free(fileinode);
     free(i_data);
+    fclose(myfs);
     return;
 }
 /*
