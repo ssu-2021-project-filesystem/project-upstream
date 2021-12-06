@@ -247,7 +247,14 @@ void myinode(const char *ptr)
     }
 
     // single indirect
-    printf("간접 블록 번호 : %d\n", inode_data_ptr->indir + 1);
+    if(inode_data_ptr->indir == 0)
+    {
+        printf("간접 블록 번호 : 0\n");    
+    }
+    else
+    {
+        printf("간접 블록 번호 : %d\n", inode_data_ptr->indir + 1);
+    }
 
     //동적 메모리 할당 공간 반납
     free(inode_data_ptr);
@@ -884,11 +891,13 @@ void mymkfs(void)
     else //파일이 존재하는 경우
     {
         char char_tmp;
+        char trash;
 
         while(1)
         {
             printf("파일시스템이 있습니다. 다시 만들겠습니까? (y/n) ");
             char_tmp = getchar();
+            trash = getchar();
 
             rewind(stdin); //버퍼 비우기
 
@@ -909,8 +918,6 @@ void mymkfs(void)
             }
         }
     }
-
-    rewind(stdin);
 
     if(new_fs == 1)
     {

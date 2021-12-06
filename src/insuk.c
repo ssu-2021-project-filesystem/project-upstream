@@ -654,7 +654,7 @@ void mytouch(char *givenname)
         fwrite(i_data, sizeof(INODE), 1, myfs);
 
         //생성한 파일의 datablock에 -1 저장
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * savedbnumber), SEEK_SET);
+        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (savedbnumber - 1)), SEEK_SET);
         fwrite(&minus_tmp, sizeof(char), 1, myfs);
 
         free(sb_data);
