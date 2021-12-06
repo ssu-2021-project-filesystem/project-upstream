@@ -910,6 +910,8 @@ void mymkfs(void)
         }
     }
 
+    rewind(stdin);
+
     if(new_fs == 1)
     {
         FILE *myfs;
