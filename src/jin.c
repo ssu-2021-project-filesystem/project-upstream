@@ -407,12 +407,14 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
     int *indirect_num = (int *)malloc(sizeof(int));
     char *datablock_ptr = (char *)malloc(sizeof(char));
     int saveloop = (intstartbyte / 256);
+    int tmp = 0;
     //directÇü½Ä
     for(int loop = saveloop; loop < 8; loop++)
     {
         if(intstartbyte > (256*8))
         {
             saveloop = loop;
+            tmp++;
             break;
         }
         if(intendbyte > (256 * loop))
@@ -426,11 +428,13 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
                     if(intendbyte == (256 * loop) + i)
                     {
                         saveloop = loop;
+                        tmp++;
                         break;
                     }
                     if (*datablock_ptr == -1)
                     {
                         saveloop = loop;
+                        tmp++;
                         break;
                     }
                     printf("%c", *datablock_ptr);
@@ -445,11 +449,13 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
                     if(intendbyte == (256 * loop) + i)
                     {
                         saveloop = loop;
+                        tmp++;
                         break;
                     }
                     if (*datablock_ptr == -1)
                     {
                         saveloop = loop;
+                        tmp++;
                         break;
                     }
                     printf("%c", *datablock_ptr);
@@ -465,15 +471,15 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
     }
     for(int loop = saveloop + 1; loop < 16; loop++)
     {
-        if(loop < 8)
+        if(intendbyte < (256 * 8))
         {
             break;
         }
         if(intendbyte > (256 * loop))
         {
-            if (loop == saveloop)
+            if (tmp == 0)
             {
-                fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir) + (sizeof(char) * (loop-8))), SEEK_SET);
+                fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)) + ((sizeof(char) * (loop-8))), SEEK_SET);
                 fread(indirect_num, sizeof(char), 1, myfs);
                 fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num) + ((intstartbyte - (256 * loop)) - 1)), SEEK_SET);
                 for (int i = (intstartbyte - (256 * loop)); i <= 256; i++)
