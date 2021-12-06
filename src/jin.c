@@ -1,4 +1,5 @@
 #include "user.h"
+
 /*
 이름 : stringtoint함수
 작성자 : 양인석
@@ -312,7 +313,6 @@ void mycat(char *givenname)
     fclose(myfs);
     return;
 }
-
 /*
 이름    : myshowfile 함수
 작성자  : 양인석
@@ -406,88 +406,109 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
     //특정부분 읽은 후 출력
     int *indirect_num = (int *)malloc(sizeof(int));
     char *datablock_ptr = (char *)malloc(sizeof(char));
-    if (intstartbyte <= 256 && intendbyte <= 256)
+    int saveloop = (intstartbyte / 256);
+    //direct형식
+    for(int loop = saveloop; loop < 8; loop++)
     {
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_1)) + (intstartbyte - 1), SEEK_SET);
-        for (int i = intstartbyte; i <= intendbyte; i++)
+        if(intstartbyte > (256*8))
         {
-            fread(datablock_ptr, sizeof(char), 1, myfs);
-            printf("%c", *datablock_ptr);
+            saveloop = loop;
+            break;
         }
+        if(intendbyte > (256 * loop))
+        {
+            if (loop == (intstartbyte / 256))
+            {
+                fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*((char *)i_data + 11 + loop))) + ((intstartbyte - (256 * loop)) - 1), SEEK_SET);
+                for (int i = (intstartbyte - (256 * loop)); i <= 256; i++)
+                {
+                    fread(datablock_ptr, sizeof(char), 1, myfs);
+                    if(intendbyte == (256 * loop) + i)
+                    {
+                        saveloop = loop;
+                        break;
+                    }
+                    if (*datablock_ptr == -1)
+                    {
+                        saveloop = loop;
+                        break;
+                    }
+                    printf("%c", *datablock_ptr);
+                }
+            }
+            else
+            {
+                fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*((char *)i_data + 11 + loop))), SEEK_SET);
+                for (int i = 1; i <= 256; i++)
+                {
+                    fread(datablock_ptr, sizeof(char), 1, myfs);
+                    if(intendbyte == (256 * loop) + i)
+                    {
+                        saveloop = loop;
+                        break;
+                    }
+                    if (*datablock_ptr == -1)
+                    {
+                        saveloop = loop;
+                        break;
+                    }
+                    printf("%c", *datablock_ptr);
+                }
+            }
+        }
+        saveloop = loop;
     }
-    else if(intstartbyte <= 256 && intendbyte > 256 && intendbyte <= (256 * 8))
+    //indirect형식
+    if(saveloop >= 8)
     {
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_1)) + (intstartbyte - 1), SEEK_SET);
-        for (int i = intstartbyte; i <= 256; i++)
-        {
-            fread(datablock_ptr, sizeof(char), 1, myfs);
-            printf("%c", *datablock_ptr);
-        }
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2)), SEEK_SET);
-        for (int i = 257; i <= intendbyte; i++)
-        {
-            fread(datablock_ptr, sizeof(char), 1, myfs);
-            printf("%c", *datablock_ptr);
-        }
+        saveloop--;
     }
-    else if(intstartbyte <= 256 && intendbyte > (256 * 8))//인다이렉트 사용
+    for(int loop = saveloop + 1; loop < 16; loop++)
     {
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_1)) + (intstartbyte - 1), SEEK_SET);
-        for (int i = intstartbyte; i <= 256; i++)
+        if(loop < 8)
         {
-            fread(datablock_ptr, sizeof(char), 1, myfs);
-            printf("%c", *datablock_ptr);
+            break;
         }
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2)), SEEK_SET);
-        for (int i = 257; i <= (256 * 8); i++)
+        if(intendbyte > (256 * loop))
         {
-            fread(datablock_ptr, sizeof(char), 1, myfs);
-            printf("%c", *datablock_ptr);
-        }
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
-        fread(indirect_num, sizeof(int), 1, myfs);
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num)), SEEK_SET);
-        for (int i = (256 * 8) + 1; i <= intendbyte; i++)
-        {
-            fread(datablock_ptr, sizeof(char), 1, myfs);
-            printf("%c", *datablock_ptr);
-        }
-    }
-    else if(intstartbyte > 256 && intstartbyte <= (256 * 8) && intendbyte > 256 && intendbyte <= (256 * 8))
-    {
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2) + (intstartbyte - 1)), SEEK_SET);
-        for (int i = intstartbyte; i <= intendbyte; i++)
-        {
-            fread(datablock_ptr, sizeof(char), 1, myfs);
-            printf("%c", *datablock_ptr);
-        }
-    }
-    else if(intstartbyte > 256 && intstartbyte <= (256 * 8) && intendbyte > (256 * 8))//인다이렉트 사용
-    {
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->dir_2) + (intstartbyte - 1)), SEEK_SET);
-        for (int i = intstartbyte; i <= (256 * 8); i++)
-        {
-            fread(datablock_ptr, sizeof(char), 1, myfs);
-            printf("%c", *datablock_ptr);
-        }
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
-        fread(indirect_num, sizeof(int), 1, myfs);
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num)), SEEK_SET);
-        for (int i = (256 * 8) + 1; i <= intendbyte; i++)
-        {
-            fread(datablock_ptr, sizeof(char), 1, myfs);
-            printf("%c", *datablock_ptr);
-        }
-    }
-    else if(intstartbyte > (256 * 8) && intendbyte > (256 * 8))//인다이렉트사용
-    {
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)), SEEK_SET);
-        fread(indirect_num, sizeof(int), 1, myfs);
-        fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num) + (intstartbyte - 1)), SEEK_SET);
-        for (int i = intstartbyte; i <= intendbyte; i++)
-        {
-            fread(datablock_ptr, sizeof(char), 1, myfs);
-            printf("%c", *datablock_ptr);
+            if (loop == saveloop)
+            {
+                fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir) + (sizeof(char) * (loop-8))), SEEK_SET);
+                fread(indirect_num, sizeof(char), 1, myfs);
+                fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num) + ((intstartbyte - (256 * loop)) - 1)), SEEK_SET);
+                for (int i = (intstartbyte - (256 * loop)); i <= 256; i++)
+                {
+                    fread(datablock_ptr, sizeof(char), 1, myfs);
+                    if(intendbyte == (256 * loop) + i)
+                    {
+                        break;
+                    }
+                    if (*datablock_ptr == -1)
+                    {
+                        break;
+                    }
+                    printf("%c", *datablock_ptr);
+                }
+            }
+            else
+            {
+                fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)) + (sizeof(char) * (loop-8)), SEEK_SET);
+                fread(indirect_num, sizeof(char), 1, myfs);
+                fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num)), SEEK_SET);
+                for (int i = 1; i <= 256; i++)
+                {
+                    fread(datablock_ptr, sizeof(char), 1, myfs);
+                    if(intendbyte == (256 * loop) + i)
+                    {
+                        break;
+                    }
+                    if (*datablock_ptr == -1)
+                    {
+                        break;
+                    }
+                    printf("%c", *datablock_ptr);
+                }
+            }
         }
     }
 
