@@ -463,6 +463,8 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
             }
         }
         saveloop = loop;
+
+        tmp++;
     }
     //indirectÇü½Ä
     if(saveloop >= 8)
@@ -479,6 +481,8 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
         {
             if (tmp == 0)
             {
+                tmp++;
+
                 fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)) + ((sizeof(char) * (loop-8))), SEEK_SET);
                 fread(indirect_num, sizeof(char), 1, myfs);
                 fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num)) + ((intstartbyte - (256 * loop)) - 1), SEEK_SET);
