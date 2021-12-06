@@ -404,7 +404,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
     fread(i_data, sizeof(INODE), 1, myfs);
 
     //특정부분 읽은 후 출력
-    int *indirect_num = (int *)malloc(sizeof(int));
+    char *indirect_num = (char *)malloc(sizeof(char));
     char *datablock_ptr = (char *)malloc(sizeof(char));
     int saveloop = (intstartbyte / 256);
     int tmp = 0;
@@ -481,7 +481,7 @@ void myshowfile(char *startbyte, char *endbyte, char *givenname)
             {
                 fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (i_data->indir)) + ((sizeof(char) * (loop-8))), SEEK_SET);
                 fread(indirect_num, sizeof(char), 1, myfs);
-                fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num) + ((intstartbyte - (256 * loop)) - 1)), SEEK_SET);
+                fseek(myfs, BOOT_BLOCK_SIZE + SUPER_BLOCK_SIZE + INODE_LIST_SIZE + (DATA_BLOCK_SIZE * (*indirect_num)) + ((intstartbyte - (256 * loop)) - 1), SEEK_SET);
                 for (int i = (intstartbyte - (256 * loop)); i <= 256; i++)
                 {
                     fread(datablock_ptr, sizeof(char), 1, myfs);
